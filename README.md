@@ -41,7 +41,6 @@ pnpm build
 
 ## Local development
 
-
 <details>
 <summary>using pnpm</summary>
 
@@ -66,6 +65,7 @@ pnpm unlink @blinkbitcoin/client
 # in blinkbitcoin/client folder
 pnpm unlink --global
 ```
+
 </details>
 
 <details>
@@ -92,6 +92,7 @@ yarn unlink @galoymoney/client
 # in galoymoney/client folder
 yarn unlink
 ```
+
 </details>
 
 <details>
@@ -123,4 +124,5 @@ to update changes, you have to run <code>yalc publish</code> before run:
 # in your test project
 yalc update
 ```
+
 </details>
