@@ -11,3 +11,4 @@ tsconfig.json
 **/*.spec.js
 .eslintrc.js
 eslint.config.mjs
+.pnpm-store
