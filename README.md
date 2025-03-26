@@ -1,13 +1,13 @@
 # Galoy Client
 
-JavaScript client library for the Galoy stack. This is used in front-end applications like the web and mobile wallets.
+JavaScript client library for the Blink stack. This is used in front-end applications like the web and mobile wallets.
 
 ## Installation
 
 Install the package with:
 
 ```bash
-yarn add @galoymoney/client
+yarn add @blinkbitcoin/blink-client
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ yarn add @galoymoney/client
 ### parsePaymentDestination
 
 ```js
-import { parsePaymentDestination } from "@blinkbitcoin/client"
+import { parsePaymentDestination } from "@blinkbitcoin/blink-client"
 
 const { valid, paymentType, amount } = parsePaymentDestination({
   destination: "username or invoice or bitcoin address",

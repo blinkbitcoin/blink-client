@@ -164,7 +164,7 @@ resources:
 - name: npm-release
   type: npm
   source:
-    package: client
+    package: blink-client
     scope: blinkbitcoin
     registry:
       uri: https://registry.npmjs.org/

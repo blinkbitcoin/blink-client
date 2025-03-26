@@ -3,9 +3,9 @@ import { parsePaymentDestination } from "./parsing/index"
 const args = process.argv.slice(2)
 
 if (args.length < 1) {
-  console.error("Usage: blink-parse <destination> [network] [lnAddressDomains]")
+  console.error("Usage: pnpm cli <destination> [network] [lnAddressDomains]")
   console.error(
-    "Example: blink-parse lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdpl2pkx2ctnv5sxxmmwwd5kgetjypeh2ursdae8g6twvus8g6rfwvs8qun0dfjkxaq mainnet blink.sv,wallet.blink.sv",
+    "Example: pnpm cli lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdpl2pkx2ctnv5sxxmmwwd5kgetjypeh2ursdae8g6twvus8g6rfwvs8qun0dfjkxaq mainnet blink.sv",
   )
   process.exit(1)
 }
