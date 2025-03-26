@@ -1,5 +1,8 @@
 {
   "name": "@blinkbitcoin/blink-client",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
   "version": "0.2.14",
   "license": "MIT",
