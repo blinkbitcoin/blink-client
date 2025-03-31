@@ -53,14 +53,14 @@ pnpm link --global
 and in your test project run:
 
 ```bash
-pnpm link --global @blinkbitcoin/client
+pnpm link --global @blinkbitcoin/blink-client
 ```
 
 If you want to remove the link, run:
 
 ```bash
 # in your test project
-pnpm unlink @blinkbitcoin/client
+pnpm unlink @blinkbitcoin/blink-client
 
 # in blinkbitcoin/client folder
 pnpm unlink --global
