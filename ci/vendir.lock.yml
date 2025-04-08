@@ -2,14 +2,14 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - git:
-      commitTitle: 'fix: bumping for forked repos (and typo) (#6)...'
-      sha: dafb65ba11f0b0594eafacad66828b3e76f0deb9
+      commitTitle: 'chore: upgrade npm via recent docker-repo and more verbosity (#8)...'
+      sha: 8e74bb7383fb55fbf8ba6ab98780310b2b07d6d2
     path: .
   path: ../.github/workflows/vendor
 - contents:
   - git:
-      commitTitle: 'fix: bumping for forked repos (and typo) (#6)...'
-      sha: dafb65ba11f0b0594eafacad66828b3e76f0deb9
+      commitTitle: 'chore: upgrade npm via recent docker-repo and more verbosity (#8)...'
+      sha: 8e74bb7383fb55fbf8ba6ab98780310b2b07d6d2
     path: .
   path: vendor
 kind: LockConfig
