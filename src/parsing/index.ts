@@ -245,7 +245,7 @@ const isValidPhoneNumber = (input: string): boolean => {
   if (!phone?.country) {
     return false
   }
-  
+
   return phone.isValid()
 }
 
