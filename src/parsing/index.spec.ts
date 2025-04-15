@@ -703,7 +703,7 @@ describe("parsePaymentDestination - Phone Number as IntraLedger Payment", () => 
         },
       },
       {
-        description: `validates a phone number without plus simbol as an intraledger payment on ${network}`,
+        description: `validates a phone number without plus symbol as an intraledger payment on ${network}`,
         destination: "50370123456",
         network,
         expected: {

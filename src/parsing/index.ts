@@ -242,7 +242,11 @@ const parseAmount = (txt: string): number => {
 const isValidPhoneNumber = (input: string): boolean => {
   const normalized = input.trim().startsWith("+") ? input.trim() : `+${input.trim()}`
   const phone = parsePhoneNumberFromString(normalized)
-  return Boolean(phone?.isValid() && phone?.country)
+  if (!phone?.country) {
+    return false
+  }
+  
+  return phone.isValid()
 }
 
 type ParsePaymentDestinationArgs = {
