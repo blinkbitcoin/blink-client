@@ -5,9 +5,9 @@ yarn-error.log
 .vscode/
 .DS_Store
 codegen.yml
-jest.config.json
+jest.config.js
 prettier.config.js
-,prettierignore
+.prettierignore
 tsconfig.json
 **/*.spec.js
 .eslintrc.js
@@ -19,6 +19,5 @@ ci
 flake.lock
 flake.nix
 .envrc
-tsup.config..ts
+tsup.config.ts
 typos.toml
-
