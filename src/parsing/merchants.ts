@@ -28,6 +28,16 @@ export const merchants: MerchantConfig[] = [
       regtest: "staging.cryptoqr.net",
     },
   },
+  {
+    id: "yoyo",
+    identifierRegex: /(?<identifier>.*(wigroup\.co|yoyogroup\.co).*)/iu,
+    defaultDomain: "cryptoqr.net",
+    domains: {
+      mainnet: "cryptoqr.net",
+      signet: "staging.cryptoqr.net",
+      regtest: "staging.cryptoqr.net",
+    },
+  },
 ]
 
 export const convertMerchantQRToLightningAddress = ({

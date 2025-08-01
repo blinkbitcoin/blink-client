@@ -60,6 +60,12 @@ describe("convertMerchantQRToLightningAddress", () => {
       expected:
         "00020129530019za.co.ecentric.payment0122RD2HAK3KTI53EC%2Fconfirm%F0%9F%8E%89test520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@cryptoqr.net",
     },
+    {
+      description: "Bootlegger QR code",
+      qrContent: "https://za.wigroup.co/bill/415267598",
+      network: "mainnet" as Network,
+      expected: "https%3A%2F%2Fza.wigroup.co%2Fbill%2F415267598@cryptoqr.net",
+    },
   ])("$description", ({ qrContent, network, expected }) => {
     const result = convertMerchantQRToLightningAddress({ qrContent, network })
     expect(result).toBe(expected)
