@@ -38,6 +38,36 @@ export const merchants: MerchantConfig[] = [
       regtest: "staging.cryptoqr.net",
     },
   },
+  {
+    id: "zapper",
+    identifierRegex: /(?<identifier>.*((.*zapper\.com.*)|(.*\d+\.zap\.pe(.*\n?)*))$.*)/iu,
+    defaultDomain: "cryptoqr.net",
+    domains: {
+      mainnet: "cryptoqr.net",
+      signet: "staging.cryptoqr.net",
+      regtest: "staging.cryptoqr.net",
+    },
+  },
+  {
+    id: "scantopay",
+    identifierRegex: /(?<identifier>.*(scantopay\.io).*)/iu,
+    defaultDomain: "cryptoqr.net",
+    domains: {
+      mainnet: "cryptoqr.net",
+      signet: "staging.cryptoqr.net",
+      regtest: "staging.cryptoqr.net",
+    },
+  },
+  {
+    id: "snapscan",
+    identifierRegex: /(?<identifier>.*(snapscan).*)/iu,
+    defaultDomain: "cryptoqr.net",
+    domains: {
+      mainnet: "cryptoqr.net",
+      signet: "staging.cryptoqr.net",
+      regtest: "staging.cryptoqr.net",
+    },
+  },
 ]
 
 export const convertMerchantQRToLightningAddress = ({
