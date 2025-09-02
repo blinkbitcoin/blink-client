@@ -40,7 +40,8 @@ export const merchants: MerchantConfig[] = [
   },
   {
     id: "zapper",
-    identifierRegex: /(?<identifier>.*((.*zapper\.com.*)|(.*\d+\.zap\.pe(.*\n?)*))$.*)/iu,
+    identifierRegex:
+      /^\s*(?<identifier>((.*zapper\.com.*)|(.{2}\/.{4}\/.{20})|(.*payat\.io.*)|(.*(paynow\.netcash|paynow\.sagepay)\.co\.za.*)|(SK-\d{1,}-\d{23})|(\d{20})|(.*\d+\.zap\.pe(.*\n?)*)|(.*transactionjunction\.co\.za.*)|(CRSTPC-\d+-\d+-\d+-\d+-\d+)))\s*$/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",

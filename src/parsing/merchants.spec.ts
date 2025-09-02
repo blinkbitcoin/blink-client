@@ -82,6 +82,50 @@ describe("convertMerchantQRToLightningAddress", () => {
         "http%3A%2F%2F2.zap.pe%3Ft%3D6%26i%3D40895%3A49955%3A7%5B34%7C0.00%7C3%3A10%5B39%7CZAR%2C38%7CDillonDev@cryptoqr.net",
     },
     {
+      description: "Pay@ Bill Payment QR codes",
+      qrContent: "ab/abcd/abcdefghijklmnopqrst",
+      network: "mainnet" as Network,
+      expected: "ab%2Fabcd%2Fabcdefghijklmnopqrst@cryptoqr.net",
+    },
+    {
+      description: "Matches payat.io URL",
+      qrContent: "https://portal.payat.io/transactions/view?id=12345",
+      network: "mainnet" as Network,
+      expected:
+        "https%3A%2F%2Fportal.payat.io%2Ftransactions%2Fview%3Fid%3D12345@cryptoqr.net",
+    },
+    {
+      description: "Matches paynow.netcash.co.za URL",
+      qrContent: "https://paynow.netcash.co.za/qr/ABCDEF123456",
+      network: "mainnet" as Network,
+      expected: "https%3A%2F%2Fpaynow.netcash.co.za%2Fqr%2FABCDEF123456@cryptoqr.net",
+    },
+    {
+      description: "Matches paynow.sagepay.co.za URL",
+      qrContent: "https://paynow.sagepay.co.za/pay/XYZ789",
+      network: "mainnet" as Network,
+      expected: "https%3A%2F%2Fpaynow.sagepay.co.za%2Fpay%2FXYZ789@cryptoqr.net",
+    },
+    {
+      description: "Standard Bank’s Scan to Pay / SnapScan–style reference",
+      qrContent: "SK-123-12345678901234567890123",
+      network: "mainnet" as Network,
+      expected: "SK-123-12345678901234567890123@cryptoqr.net",
+    },
+    {
+      description: "Matches transactionjunction.co.za URL",
+      qrContent: "https://www.transactionjunction.co.za/receipt/12345",
+      network: "mainnet" as Network,
+      expected:
+        "https%3A%2F%2Fwww.transactionjunction.co.za%2Freceipt%2F12345@cryptoqr.net",
+    },
+    {
+      description: "Certain parking ticket formats (Servest Parking)",
+      qrContent: "CRSTPC-12-345-6789-10-11",
+      network: "mainnet" as Network,
+      expected: "CRSTPC-12-345-6789-10-11@cryptoqr.net",
+    },
+    {
       description: "ScanToPay QR code",
       qrContent: "https://qa.scantopay.io/pluto/public/qr/8784599487",
       network: "mainnet" as Network,
@@ -93,6 +137,13 @@ describe("convertMerchantQRToLightningAddress", () => {
       qrContent: "https://pos.snapscan.io/qr/STB2ACC8",
       network: "mainnet" as Network,
       expected: "https%3A%2F%2Fpos.snapscan.io%2Fqr%2FSTB2ACC8@cryptoqr.net",
+    },
+    {
+      description:
+        "Bankserv / Payments Association of SA–aligned bill-payment references",
+      qrContent: "12345678901234567890",
+      network: "mainnet" as Network,
+      expected: "12345678901234567890@cryptoqr.net",
     },
   ])("$description", ({ qrContent, network, expected }) => {
     const result = convertMerchantQRToLightningAddress({ qrContent, network })
