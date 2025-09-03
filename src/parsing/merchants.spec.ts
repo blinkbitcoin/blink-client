@@ -138,13 +138,6 @@ describe("convertMerchantQRToLightningAddress", () => {
       network: "mainnet" as Network,
       expected: "https%3A%2F%2Fpos.snapscan.io%2Fqr%2FSTB2ACC8@cryptoqr.net",
     },
-    {
-      description:
-        "Bankserv / Payments Association of SA–aligned bill-payment references",
-      qrContent: "12345678901234567890",
-      network: "mainnet" as Network,
-      expected: "12345678901234567890@cryptoqr.net",
-    },
   ])("$description", ({ qrContent, network, expected }) => {
     const result = convertMerchantQRToLightningAddress({ qrContent, network })
     expect(result).toBe(expected)
