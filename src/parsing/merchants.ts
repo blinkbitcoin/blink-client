@@ -40,8 +40,77 @@ export const merchants: MerchantConfig[] = [
   },
   {
     id: "zapper",
-    identifierRegex:
-      /^\s*(?<identifier>((.*zapper\.com.*)|(.{2}\/.{4}\/.{20})|(.*payat\.io.*)|(.*(paynow\.netcash|paynow\.sagepay)\.co\.za.*)|(SK-\d{1,}-\d{23})|(.*\d+\.zap\.pe(.*\n?)*)|(.*transactionjunction\.co\.za.*)|(CRSTPC-\d+-\d+-\d+-\d+-\d+)))\s*$/iu,
+    identifierRegex: /(?<identifier>.*(zapper\.com|\d+\.zap\.pe).*)/iu,
+    defaultDomain: "cryptoqr.net",
+    domains: {
+      mainnet: "cryptoqr.net",
+      signet: "staging.cryptoqr.net",
+      regtest: "staging.cryptoqr.net",
+    },
+  },
+  {
+    id: "payat",
+    identifierRegex: /(?<identifier>.*payat\.io.*)/iu,
+    defaultDomain: "cryptoqr.net",
+    domains: {
+      mainnet: "cryptoqr.net",
+      signet: "staging.cryptoqr.net",
+      regtest: "staging.cryptoqr.net",
+    },
+  },
+  {
+    id: "paynow-netcash",
+    identifierRegex: /(?<identifier>.*paynow\.netcash\.co\.za.*)/iu,
+    defaultDomain: "cryptoqr.net",
+    domains: {
+      mainnet: "cryptoqr.net",
+      signet: "staging.cryptoqr.net",
+      regtest: "staging.cryptoqr.net",
+    },
+  },
+  {
+    id: "paynow-sagepay",
+    identifierRegex: /(?<identifier>.*paynow\.sagepay\.co\.za.*)/iu,
+    defaultDomain: "cryptoqr.net",
+    domains: {
+      mainnet: "cryptoqr.net",
+      signet: "staging.cryptoqr.net",
+      regtest: "staging.cryptoqr.net",
+    },
+  },
+  {
+    id: "standard-bank-scantopay",
+    identifierRegex: /(?<identifier>SK-\d{1,}-\d{23})/iu,
+    defaultDomain: "cryptoqr.net",
+    domains: {
+      mainnet: "cryptoqr.net",
+      signet: "staging.cryptoqr.net",
+      regtest: "staging.cryptoqr.net",
+    },
+  },
+  {
+    id: "transactionjunction",
+    identifierRegex: /(?<identifier>.*transactionjunction\.co\.za.*)/iu,
+    defaultDomain: "cryptoqr.net",
+    domains: {
+      mainnet: "cryptoqr.net",
+      signet: "staging.cryptoqr.net",
+      regtest: "staging.cryptoqr.net",
+    },
+  },
+  {
+    id: "servest-parking",
+    identifierRegex: /(?<identifier>CRSTPC-\d+-\d+-\d+-\d+-\d+)/iu,
+    defaultDomain: "cryptoqr.net",
+    domains: {
+      mainnet: "cryptoqr.net",
+      signet: "staging.cryptoqr.net",
+      regtest: "staging.cryptoqr.net",
+    },
+  },
+  {
+    id: "payat-generic",
+    identifierRegex: /(?<identifier>.{2}\/.{4}\/.{20})/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
