@@ -687,68 +687,69 @@ describe("parsePaymentDestination IntraLedger handles", () => {
   })
 })
 
-describe("parsePaymentDestination - Phone Number as IntraLedger Payment", () => {
+describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
   const networks: Network[] = ["mainnet", "signet", "regtest"]
+  const lnAddressDomains = ["blink.sv"]
 
   test.each(
     networks.flatMap((network) => [
       {
-        description: `validates a phone number as an intraledger payment on ${network}`,
+        description: `validates a phone number as an lnurl payment on ${network}`,
         destination: "+50370123456",
         network,
         expected: {
-          paymentType: PaymentType.Intraledger,
-          handle: "+50370123456",
+          paymentType: PaymentType.Lnurl,
+          lnurl: `+50370123456@${lnAddressDomains[0]}`,
           valid: true,
         },
       },
       {
-        description: `validates a phone number without plus symbol as an intraledger payment on ${network}`,
+        description: `validates a phone number without plus symbol as an lnurl payment on ${network}`,
         destination: "50370123456",
         network,
         expected: {
-          paymentType: PaymentType.Intraledger,
-          handle: "50370123456",
+          paymentType: PaymentType.Lnurl,
+          lnurl: `50370123456@${lnAddressDomains[0]}`,
           valid: true,
         },
       },
       {
-        description: `validates a phone number with 00 prefix as an intraledger payment on ${network}`,
+        description: `validates a phone number with 00 prefix as an lnurl payment on ${network}`,
         destination: "0050370123456",
         network,
         expected: {
-          paymentType: PaymentType.Intraledger,
-          handle: "0050370123456",
+          paymentType: PaymentType.Lnurl,
+          lnurl: `0050370123456@${lnAddressDomains[0]}`,
           valid: true,
         },
       },
       {
-        description: `validates a phone number with spaces and 00 prefix as an intraledger payment on ${network}`,
+        description: `validates a phone number with spaces and 00 prefix as an lnurl payment on ${network}`,
         destination: "00 503 7012 3456",
         network,
         expected: {
-          paymentType: PaymentType.Intraledger,
-          handle: "00 503 7012 3456",
+          paymentType: PaymentType.Lnurl,
+          lnurl: `00 503 7012 3456@${lnAddressDomains[0]}`,
           valid: true,
         },
       },
       {
-        description: `validates a phone number with max length as an intraledger payment on ${network}`,
+        description: `validates a phone number with max length as an lnurl payment on ${network}`,
         destination: "+12025550123",
         network,
         expected: {
-          paymentType: PaymentType.Intraledger,
-          handle: "+12025550123",
+          paymentType: PaymentType.Lnurl,
+          lnurl: `+12025550123@${lnAddressDomains[0]}`,
           valid: true,
         },
       },
       {
-        description: `validates a phone number with max length and 00 prefix as an intraledger payment on ${network}`,
+        description: `validates a phone number with max length and 00 prefix as an lnurl payment on ${network}`,
         destination: "0012025550123",
         network,
         expected: {
-          paymentType: PaymentType.Intraledger,
-          handle: "0012025550123",
+          paymentType: PaymentType.Lnurl,
+          lnurl: `0012025550123@${lnAddressDomains[0]}`,
           valid: true,
         },
       },
@@ -793,7 +794,7 @@ describe("parsePaymentDestination - Phone Number as IntraLedger Payment", () => 
     const paymentDestination = parsePaymentDestination({
       destination,
       network,
-      lnAddressDomains: [],
+      lnAddressDomains,
     })
 
     expect(paymentDestination).toEqual(expect.objectContaining(expected))
