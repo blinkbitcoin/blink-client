@@ -338,7 +338,11 @@ const getPaymentType = ({
       ]
     : destinationWithoutProtocol
 
-  if (handle?.match(reUsername) || isValidPhoneNumber(handle)) {
+  if (isValidPhoneNumber(handle)) {
+    return PaymentType.Lnurl
+  }
+
+  if (handle?.match(reUsername)) {
     return PaymentType.Intraledger
   }
 
@@ -391,7 +395,7 @@ const getIntraLedgerPayResponse = ({
     }
   }
 
-  if (handle?.match(reUsername) || isValidPhoneNumber(handle)) {
+  if (handle?.match(reUsername)) {
     return {
       valid: true,
       paymentType: PaymentType.Intraledger,
@@ -433,6 +437,16 @@ const getLNURLPayResponse = ({
   | IntraledgerPaymentDestination
   | UnknownPaymentDestination => {
   // handle internal lightning addresses
+  const trimmed = destination.trim()
+
+  if (isValidPhoneNumber(trimmed)) {
+    const domain = lnAddressDomains[0]
+    return {
+      valid: true,
+      paymentType: PaymentType.Lnurl,
+      lnurl: `${trimmed}@${domain}`,
+    }
+  }
 
   const lnAddress = utils.parseLightningAddress(destination)
   if (lnAddress) {
