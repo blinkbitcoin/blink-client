@@ -8,7 +8,7 @@ directories:
   - path: . # Copy this folder out to ..
     git:
       url: https://github.com/blinkbitcoin/concourse-shared.git
-      ref: f7a2237275020bcbc6abd28c1bc5a21426ba25df
+      ref: cc83b5d70e0a0322524ba49c73f950defcc5a6f6
     includePaths:
     - shared/actions/*
     excludePaths:
@@ -22,7 +22,7 @@ directories:
   - path: .
     git:
       url: https://github.com/blinkbitcoin/concourse-shared.git
-      ref: f7a2237275020bcbc6abd28c1bc5a21426ba25df
+      ref: cc83b5d70e0a0322524ba49c73f950defcc5a6f6
     includePaths:
     - shared/ci/**/*
     excludePaths:
