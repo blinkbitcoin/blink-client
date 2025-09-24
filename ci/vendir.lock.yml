@@ -2,16 +2,14 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - git:
-      commitTitle: 'chore: correct references to blinkbitcoin and blinkbitcoinbot
-        (#10)'
-      sha: f7a2237275020bcbc6abd28c1bc5a21426ba25df
+      commitTitle: 'chore: more visibility (#15)'
+      sha: 610c287d6f7fab51b4b8e778d88ccd5ea8c73e8f
     path: .
   path: ../.github/workflows/vendor
 - contents:
   - git:
-      commitTitle: 'chore: correct references to blinkbitcoin and blinkbitcoinbot
-        (#10)'
-      sha: f7a2237275020bcbc6abd28c1bc5a21426ba25df
+      commitTitle: 'chore: more visibility (#15)'
+      sha: 610c287d6f7fab51b4b8e778d88ccd5ea8c73e8f
     path: .
   path: vendor
 kind: LockConfig
