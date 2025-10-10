@@ -136,8 +136,7 @@ describe("convertMerchantQRToLightningAddress", () => {
       description: "ScanToPay 10-digit code",
       qrContent: "8784599487",
       network: "mainnet" as Network,
-      expected:
-        "8784599487@cryptoqr.net",
+      expected: "8784599487@cryptoqr.net",
     },
     {
       description: "Snapscan QR code",
@@ -181,8 +180,7 @@ describe("convertMerchantQRToLightningAddress", () => {
     },
     {
       description: "10 digits with other text",
-      qrContent:
-        "Call me at 1234567890 for more details",
+      qrContent: "Call me at 1234567890 for more details",
       network: "mainnet" as Network,
     },
   ])("returns null for $description", ({ qrContent, network }) => {
