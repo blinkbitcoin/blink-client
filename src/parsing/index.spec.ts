@@ -837,6 +837,25 @@ describe("parsePaymentDestination Merchant QR", () => {
     )
   })
 
+  it("validates a SnapScan QR code on mainnet", () => {
+    const merchantQR = "https://pos.snapscan.io/qr/STB2ACC8"
+
+    const paymentDestination = parsePaymentDestination({
+      destination: merchantQR,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+
+    expect(paymentDestination).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "https%3A%2F%2Fpos.snapscan.io%2Fqr%2FSTB2ACC8@cryptoqr.net",
+        isMerchant: true,
+      }),
+    )
+  })
+
   it("validates a merchant QR code on signet", () => {
     const merchantQR =
       "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC/confirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2"
