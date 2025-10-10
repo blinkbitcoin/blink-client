@@ -5,7 +5,7 @@ import { parsePhoneNumberFromString } from "libphonenumber-js"
 import * as bitcoinjs from "bitcoinjs-lib"
 import * as ecc from "@bitcoinerlab/secp256k1"
 
-import type { Network } from "./types"
+import type { Network, InputSource } from "./types"
 import { convertMerchantQRToLightningAddress } from "./merchants"
 
 bitcoinjs.initEccLib(ecc)
@@ -257,6 +257,8 @@ type ParsePaymentDestinationArgs = {
   destination: string
   network: Network
   lnAddressDomains: string[]
+  inputSource?: InputSource
+  displayCurrency?: string
 }
 
 const getLNParam = (data: string): string | null => {
@@ -429,18 +431,37 @@ const getLNURLPayResponse = ({
   lnAddressDomains,
   destination,
   network,
+  inputSource = "manual",
+  displayCurrency,
 }: {
   lnAddressDomains: string[]
   destination: string
   network: Network
+  inputSource?: InputSource
+  displayCurrency?: string
 }):
   | LnurlPaymentDestination
   | IntraledgerPaymentDestination
   | UnknownPaymentDestination => {
-  // handle internal lightning addresses
   const trimmed = destination.trim()
 
   if (isValidPhoneNumber(trimmed)) {
+    if (inputSource === "qr") {
+      const merchantLightningAddress = convertMerchantQRToLightningAddress({
+        qrContent: trimmed,
+        network,
+        displayCurrency,
+      })
+      if (merchantLightningAddress) {
+        return {
+          valid: true,
+          paymentType: PaymentType.Lnurl,
+          lnurl: merchantLightningAddress,
+          isMerchant: true,
+        }
+      }
+    }
+
     const domain = lnAddressDomains[0]
     return {
       valid: true,
@@ -496,6 +517,7 @@ const getLNURLPayResponse = ({
   const merchantLightningAddress = convertMerchantQRToLightningAddress({
     qrContent: destination,
     network,
+    displayCurrency,
   })
   if (merchantLightningAddress) {
     return {
@@ -651,6 +673,8 @@ export const parsePaymentDestination = ({
   destination,
   network,
   lnAddressDomains,
+  inputSource = "manual",
+  displayCurrency,
 }: ParsePaymentDestinationArgs): ParsedPaymentDestination => {
   if (!destination) {
     return { paymentType: PaymentType.NullInput }
@@ -670,6 +694,8 @@ export const parsePaymentDestination = ({
         lnAddressDomains,
         destination: protocol === "lightning" ? destinationWithoutProtocol : destination,
         network,
+        inputSource,
+        displayCurrency,
       })
     case PaymentType.Lightning:
       return getLightningPayResponse({ destination, network })

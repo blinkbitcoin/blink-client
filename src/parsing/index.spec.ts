@@ -8,6 +8,7 @@ import {
 } from "."
 
 import type { Network } from "./types"
+import * as merchants from "./merchants"
 
 const p2pkh = "1KP2uzAZYoNF6U8BkMBRdivLNujwSjtAQV"
 const p2sh = "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy"
@@ -817,7 +818,7 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
 describe("parsePaymentDestination Merchant QR", () => {
   it("validates a merchant QR code on mainnet", () => {
     const merchantQR =
-      "00020129530023za.co.electrum.picknpay.za.co.ecentric0122RD2HAK3KTI53EC/confirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2"
+      "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC/confirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2"
 
     const paymentDestination = parsePaymentDestination({
       destination: merchantQR,
@@ -830,7 +831,7 @@ describe("parsePaymentDestination Merchant QR", () => {
         paymentType: PaymentType.Lnurl,
         valid: true,
         lnurl:
-          "00020129530023za.co.electrum.picknpay.za.co.ecentric0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@cryptoqr.net",
+          "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@cryptoqr.net",
         isMerchant: true,
       }),
     )
@@ -838,7 +839,7 @@ describe("parsePaymentDestination Merchant QR", () => {
 
   it("validates a merchant QR code on signet", () => {
     const merchantQR =
-      "00020129530023za.co.electrum.picknpay.za.co.ecentric0122RD2HAK3KTI53EC/confirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2"
+      "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC/confirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2"
 
     const paymentDestination = parsePaymentDestination({
       destination: merchantQR,
@@ -851,8 +852,110 @@ describe("parsePaymentDestination Merchant QR", () => {
         paymentType: PaymentType.Lnurl,
         valid: true,
         lnurl:
-          "00020129530023za.co.electrum.picknpay.za.co.ecentric0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@staging.cryptoqr.net",
+          "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@staging.cryptoqr.net",
         isMerchant: true,
+      }),
+    )
+  })
+})
+
+describe("parsePaymentDestination QR Input with Merchant Priority", () => {
+  const phoneNumber = "+27123456789"
+  const mockMerchantLnurl = "merchant-identifier@cryptoqr.net"
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
+  it("prioritizes merchant when QR input matches both phone and merchant pattern", () => {
+    const merchantSpy = jest
+      .spyOn(merchants, "convertMerchantQRToLightningAddress")
+      .mockReturnValue(mockMerchantLnurl)
+
+    const paymentDestination = parsePaymentDestination({
+      destination: phoneNumber,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+      inputSource: "qr",
+    })
+
+    expect(merchantSpy).toHaveBeenCalledWith({
+      qrContent: phoneNumber,
+      network: "mainnet",
+    })
+    expect(paymentDestination).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: mockMerchantLnurl,
+        isMerchant: true,
+      }),
+    )
+  })
+
+  it("returns phone LNURL when QR input is phone without merchant match", () => {
+    const merchantSpy = jest
+      .spyOn(merchants, "convertMerchantQRToLightningAddress")
+      .mockReturnValue(null)
+
+    const paymentDestination = parsePaymentDestination({
+      destination: phoneNumber,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+      inputSource: "qr",
+    })
+
+    expect(merchantSpy).toHaveBeenCalledWith({
+      qrContent: phoneNumber,
+      network: "mainnet",
+    })
+    expect(paymentDestination).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: `${phoneNumber}@blink.sv`,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("returns phone LNURL when manual input is phone (does not check merchant)", () => {
+    const merchantSpy = jest.spyOn(merchants, "convertMerchantQRToLightningAddress")
+
+    const paymentDestination = parsePaymentDestination({
+      destination: phoneNumber,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+      inputSource: "manual",
+    })
+
+    expect(merchantSpy).not.toHaveBeenCalled()
+    expect(paymentDestination).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: `${phoneNumber}@blink.sv`,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("returns phone LNURL when inputSource is undefined (defaults to manual)", () => {
+    const merchantSpy = jest.spyOn(merchants, "convertMerchantQRToLightningAddress")
+
+    const paymentDestination = parsePaymentDestination({
+      destination: phoneNumber,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+
+    expect(merchantSpy).not.toHaveBeenCalled()
+    expect(paymentDestination).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: `${phoneNumber}@blink.sv`,
+        isMerchant: false,
       }),
     )
   })

@@ -5,11 +5,13 @@ type MerchantConfig = {
   identifierRegex: RegExp
   defaultDomain: string
   domains: { [K in Network]: string }
+  displayCurrency?: string
 }
 
 export const merchants: MerchantConfig[] = [
   {
     id: "picknpay",
+    displayCurrency: "ZAR",
     identifierRegex: /(?<identifier>.*za\.co\.electrum\.picknpay.*)/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
@@ -20,6 +22,7 @@ export const merchants: MerchantConfig[] = [
   },
   {
     id: "ecentric",
+    displayCurrency: "ZAR",
     identifierRegex: /(?<identifier>.*za\.co\.ecentric.*)/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
@@ -30,6 +33,7 @@ export const merchants: MerchantConfig[] = [
   },
   {
     id: "yoyo",
+    displayCurrency: "ZAR",
     identifierRegex: /(?<identifier>.*(wigroup\.co|yoyogroup\.co).*)/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
@@ -40,6 +44,7 @@ export const merchants: MerchantConfig[] = [
   },
   {
     id: "zapper",
+    displayCurrency: "ZAR",
     identifierRegex: /(?<identifier>.*(zapper\.com|\d+\.zap\.pe).*)/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
@@ -50,6 +55,7 @@ export const merchants: MerchantConfig[] = [
   },
   {
     id: "payat",
+    displayCurrency: "ZAR",
     identifierRegex: /(?<identifier>.*payat\.io.*)/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
@@ -60,6 +66,7 @@ export const merchants: MerchantConfig[] = [
   },
   {
     id: "paynow-netcash",
+    displayCurrency: "ZAR",
     identifierRegex: /(?<identifier>.*paynow\.netcash\.co\.za.*)/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
@@ -70,6 +77,7 @@ export const merchants: MerchantConfig[] = [
   },
   {
     id: "paynow-sagepay",
+    displayCurrency: "ZAR",
     identifierRegex: /(?<identifier>.*paynow\.sagepay\.co\.za.*)/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
@@ -80,6 +88,7 @@ export const merchants: MerchantConfig[] = [
   },
   {
     id: "standard-bank-scantopay",
+    displayCurrency: "ZAR",
     identifierRegex: /(?<identifier>SK-\d{1,}-\d{23})/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
@@ -90,6 +99,7 @@ export const merchants: MerchantConfig[] = [
   },
   {
     id: "transactionjunction",
+    displayCurrency: "ZAR",
     identifierRegex: /(?<identifier>.*transactionjunction\.co\.za.*)/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
@@ -100,6 +110,7 @@ export const merchants: MerchantConfig[] = [
   },
   {
     id: "servest-parking",
+    displayCurrency: "ZAR",
     identifierRegex: /(?<identifier>CRSTPC-\d+-\d+-\d+-\d+-\d+)/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
@@ -110,6 +121,7 @@ export const merchants: MerchantConfig[] = [
   },
   {
     id: "payat-generic",
+    displayCurrency: "ZAR",
     identifierRegex: /(?<identifier>.{2}\/.{4}\/.{20})/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
@@ -120,6 +132,7 @@ export const merchants: MerchantConfig[] = [
   },
   {
     id: "scantopay",
+    displayCurrency: "ZAR",
     identifierRegex: /(?<identifier>.*(scantopay\.io).*)/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
@@ -130,6 +143,7 @@ export const merchants: MerchantConfig[] = [
   },
   {
     id: "snapscan",
+    displayCurrency: "ZAR",
     identifierRegex: /(?<identifier>.*(snapscan).*)/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
@@ -143,20 +157,47 @@ export const merchants: MerchantConfig[] = [
 export const convertMerchantQRToLightningAddress = ({
   qrContent,
   network,
+  displayCurrency,
 }: {
   qrContent: string
   network: Network
+  displayCurrency?: string
 }): string | null => {
   if (!qrContent) {
     return null
   }
 
-  for (const merchant of merchants) {
+  const matchedMerchants = merchants.reduce<
+    Array<{ lnurl: string; displayCurrency?: string }>
+  >((acc, merchant) => {
     const match = qrContent.match(merchant.identifierRegex)
     if (match?.groups?.identifier) {
       const domain = merchant.domains[network] || merchant.defaultDomain
-      return `${encodeURIComponent(match.groups.identifier)}@${domain}`
+      acc.push({
+        lnurl: `${encodeURIComponent(match.groups.identifier)}@${domain}`,
+        displayCurrency: merchant.displayCurrency,
+      })
     }
+    return acc
+  }, [])
+
+  if (matchedMerchants.length === 0) {
+    return null
+  }
+
+  if (matchedMerchants.length === 1) {
+    return matchedMerchants[0].lnurl
+  }
+
+  const normalizedCurrency = displayCurrency?.trim().toUpperCase()
+  const currencyMatch = normalizedCurrency
+    ? matchedMerchants.find(
+        (merchant) => merchant.displayCurrency?.toUpperCase() === normalizedCurrency,
+      )
+    : undefined
+
+  if (currencyMatch) {
+    return currencyMatch.lnurl
   }
 
   return null
