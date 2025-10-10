@@ -133,6 +133,18 @@ describe("convertMerchantQRToLightningAddress", () => {
         "https%3A%2F%2Fqa.scantopay.io%2Fpluto%2Fpublic%2Fqr%2F8784599487@cryptoqr.net",
     },
     {
+      description: "ScanToPay QR code",
+      qrContent: "https://app.scantopay.io/qr?qrcode=8962148867",
+      network: "mainnet" as Network,
+      expected: "https%3A%2F%2Fapp.scantopay.io%2Fqr%3Fqrcode%3D8962148867@cryptoqr.net",
+    },
+    {
+      description: "ScanToPay QR code",
+      qrContent: "https://pos.snapscan.io/qr/STB2ACC8",
+      network: "mainnet" as Network,
+      expected: "https%3A%2F%2Fpos.snapscan.io%2Fqr%2FSTB2ACC8@cryptoqr.net",
+    },
+    {
       description: "Snapscan QR code",
       qrContent: "https://pos.snapscan.io/qr/STB2ACC8",
       network: "mainnet" as Network,
