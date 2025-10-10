@@ -5,6 +5,7 @@ type MerchantConfig = {
   identifierRegex: RegExp
   defaultDomain: string
   domains: { [K in Network]: string }
+  displayCurrency?: string
 }
 
 export const merchants: MerchantConfig[] = [
@@ -143,21 +144,49 @@ export const merchants: MerchantConfig[] = [
 export const convertMerchantQRToLightningAddress = ({
   qrContent,
   network,
+  displayCurrency,
 }: {
   qrContent: string
   network: Network
+  displayCurrency?: string
 }): string | null => {
   if (!qrContent) {
     return null
   }
 
-  for (const merchant of merchants) {
+  const normalizedCurrency = displayCurrency?.trim().toUpperCase()
+
+  const matchedMerchants = merchants.reduce<
+    Array<{ lnurl: string; displayCurrency?: string }>
+  >((acc, merchant) => {
     const match = qrContent.match(merchant.identifierRegex)
     if (match?.groups?.identifier) {
       const domain = merchant.domains[network] || merchant.defaultDomain
-      return `${encodeURIComponent(match.groups.identifier)}@${domain}`
+      acc.push({
+        lnurl: `${encodeURIComponent(match.groups.identifier)}@${domain}`,
+        displayCurrency: merchant.displayCurrency,
+      })
     }
+    return acc
+  }, [])
+
+  if (matchedMerchants.length === 0) {
+    return null
   }
 
-  return null
+  const currencyMatch = normalizedCurrency
+    ? matchedMerchants.find(
+        (merchant) => merchant.displayCurrency?.toUpperCase() === normalizedCurrency,
+      )
+    : undefined
+
+  if (currencyMatch) {
+    return currencyMatch.lnurl
+  }
+
+  if (matchedMerchants.length > 1) {
+    return null
+  }
+
+  return matchedMerchants[0].lnurl
 }

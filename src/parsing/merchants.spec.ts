@@ -1,5 +1,5 @@
 import type { Network } from "./types"
-import { convertMerchantQRToLightningAddress } from "./merchants"
+import { convertMerchantQRToLightningAddress, merchants } from "./merchants"
 
 describe("convertMerchantQRToLightningAddress", () => {
   // Test cases for valid QR contents and networks
@@ -178,16 +178,14 @@ describe("convertMerchantQRToLightningAddress", () => {
   })
 
   // Edge cases and special scenarios
-  test("handles multiple merchant identifiers in the same QR content", () => {
+  test("returns null when multiple merchant identifiers in the same QR content", () => {
     const qrContent =
       "00020129530023za.co.electrum.picknpay.za.co.ecentric0122RD2HAK3KTI53EC/confirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2"
     const result = convertMerchantQRToLightningAddress({
       qrContent,
       network: "mainnet",
     })
-    expect(result).toBe(
-      "00020129530023za.co.electrum.picknpay.za.co.ecentric0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@cryptoqr.net",
-    )
+    expect(result).toBeNull()
   })
 
   test("handles URL-unsafe characters in EMV format", () => {
@@ -212,5 +210,113 @@ describe("convertMerchantQRToLightningAddress", () => {
     expect(result).toBe(
       "00020129530023ZA.co.ELECTRUM.picknpay0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@cryptoqr.net",
     )
+  })
+})
+
+describe("convertMerchantQRToLightningAddress with displayCurrency", () => {
+  const originalMerchants = [...merchants]
+
+  beforeEach(() => {
+    merchants.length = 0
+    merchants.push(
+      {
+        id: "test-usd",
+        identifierRegex: /(?<identifier>.*test-payment.*)/iu,
+        defaultDomain: "usd-merchant.com",
+        domains: {
+          mainnet: "usd-merchant.com",
+          signet: "staging.usd-merchant.com",
+          regtest: "staging.usd-merchant.com",
+        },
+        displayCurrency: "USD",
+      },
+      {
+        id: "test-zar",
+        identifierRegex: /(?<identifier>.*test-payment.*)/iu,
+        defaultDomain: "zar-merchant.com",
+        domains: {
+          mainnet: "zar-merchant.com",
+          signet: "staging.zar-merchant.com",
+          regtest: "staging.zar-merchant.com",
+        },
+        displayCurrency: "ZAR",
+      },
+    )
+  })
+
+  afterEach(() => {
+    merchants.length = 0
+    merchants.push(...originalMerchants)
+  })
+
+  test("selects merchant with matching displayCurrency (exact match)", () => {
+    const result = convertMerchantQRToLightningAddress({
+      qrContent: "test-payment-qr",
+      network: "mainnet",
+      displayCurrency: "USD",
+    })
+
+    expect(result).toBe("test-payment-qr@usd-merchant.com")
+  })
+
+  test("handles case-insensitive displayCurrency matching", () => {
+    const result = convertMerchantQRToLightningAddress({
+      qrContent: "test-payment-qr",
+      network: "mainnet",
+      displayCurrency: "zar",
+    })
+
+    expect(result).toBe("test-payment-qr@zar-merchant.com")
+  })
+
+  test("trims displayCurrency whitespace", () => {
+    const result = convertMerchantQRToLightningAddress({
+      qrContent: "test-payment-qr",
+      network: "mainnet",
+      displayCurrency: "  USD  ",
+    })
+
+    expect(result).toBe("test-payment-qr@usd-merchant.com")
+  })
+
+  test("returns null when multiple merchants match and no displayCurrency provided", () => {
+    const result = convertMerchantQRToLightningAddress({
+      qrContent: "test-payment-qr",
+      network: "mainnet",
+    })
+
+    expect(result).toBeNull()
+  })
+
+  test("returns null when multiple merchants match and displayCurrency does not match", () => {
+    const result = convertMerchantQRToLightningAddress({
+      qrContent: "test-payment-qr",
+      network: "mainnet",
+      displayCurrency: "EUR",
+    })
+
+    expect(result).toBeNull()
+  })
+
+  test("returns merchant when only one matches regardless of displayCurrency", () => {
+    merchants.length = 0
+    merchants.push({
+      id: "test-single",
+      identifierRegex: /(?<identifier>.*test-payment.*)/iu,
+      defaultDomain: "single-merchant.com",
+      domains: {
+        mainnet: "single-merchant.com",
+        signet: "staging.single-merchant.com",
+        regtest: "staging.single-merchant.com",
+      },
+      displayCurrency: "USD",
+    })
+
+    const result = convertMerchantQRToLightningAddress({
+      qrContent: "test-payment-qr",
+      network: "mainnet",
+    })
+
+    expect(result).toBe("test-payment-qr@single-merchant.com")
   })
 })

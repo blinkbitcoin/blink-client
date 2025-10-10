@@ -258,6 +258,7 @@ type ParsePaymentDestinationArgs = {
   network: Network
   lnAddressDomains: string[]
   inputSource?: InputSource
+  displayCurrency?: string
 }
 
 const getLNParam = (data: string): string | null => {
@@ -431,11 +432,13 @@ const getLNURLPayResponse = ({
   destination,
   network,
   inputSource = "manual",
+  displayCurrency,
 }: {
   lnAddressDomains: string[]
   destination: string
   network: Network
   inputSource?: InputSource
+  displayCurrency?: string
 }):
   | LnurlPaymentDestination
   | IntraledgerPaymentDestination
@@ -447,6 +450,7 @@ const getLNURLPayResponse = ({
       const merchantLightningAddress = convertMerchantQRToLightningAddress({
         qrContent: trimmed,
         network,
+        displayCurrency,
       })
       if (merchantLightningAddress) {
         return {
@@ -513,6 +517,7 @@ const getLNURLPayResponse = ({
   const merchantLightningAddress = convertMerchantQRToLightningAddress({
     qrContent: destination,
     network,
+    displayCurrency,
   })
   if (merchantLightningAddress) {
     return {
@@ -669,6 +674,7 @@ export const parsePaymentDestination = ({
   network,
   lnAddressDomains,
   inputSource = "manual",
+  displayCurrency,
 }: ParsePaymentDestinationArgs): ParsedPaymentDestination => {
   if (!destination) {
     return { paymentType: PaymentType.NullInput }
@@ -689,6 +695,7 @@ export const parsePaymentDestination = ({
         destination: protocol === "lightning" ? destinationWithoutProtocol : destination,
         network,
         inputSource,
+        displayCurrency,
       })
     case PaymentType.Lightning:
       return getLightningPayResponse({ destination, network })

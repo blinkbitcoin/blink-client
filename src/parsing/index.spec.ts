@@ -818,7 +818,7 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
 describe("parsePaymentDestination Merchant QR", () => {
   it("validates a merchant QR code on mainnet", () => {
     const merchantQR =
-      "00020129530023za.co.electrum.picknpay.za.co.ecentric0122RD2HAK3KTI53EC/confirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2"
+      "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC/confirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2"
 
     const paymentDestination = parsePaymentDestination({
       destination: merchantQR,
@@ -831,7 +831,7 @@ describe("parsePaymentDestination Merchant QR", () => {
         paymentType: PaymentType.Lnurl,
         valid: true,
         lnurl:
-          "00020129530023za.co.electrum.picknpay.za.co.ecentric0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@cryptoqr.net",
+          "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@cryptoqr.net",
         isMerchant: true,
       }),
     )
@@ -839,7 +839,7 @@ describe("parsePaymentDestination Merchant QR", () => {
 
   it("validates a merchant QR code on signet", () => {
     const merchantQR =
-      "00020129530023za.co.electrum.picknpay.za.co.ecentric0122RD2HAK3KTI53EC/confirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2"
+      "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC/confirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2"
 
     const paymentDestination = parsePaymentDestination({
       destination: merchantQR,
@@ -852,7 +852,7 @@ describe("parsePaymentDestination Merchant QR", () => {
         paymentType: PaymentType.Lnurl,
         valid: true,
         lnurl:
-          "00020129530023za.co.electrum.picknpay.za.co.ecentric0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@staging.cryptoqr.net",
+          "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@staging.cryptoqr.net",
         isMerchant: true,
       }),
     )
