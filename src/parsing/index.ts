@@ -109,6 +109,7 @@ export type LnurlPaymentDestination =
       paymentType: typeof PaymentType.Lnurl
       valid: true
       lnurl: string
+      isMerchant: boolean
     }
   | {
       paymentType: typeof PaymentType.Lnurl
@@ -445,6 +446,7 @@ const getLNURLPayResponse = ({
       valid: true,
       paymentType: PaymentType.Lnurl,
       lnurl: `${trimmed}@${domain}`,
+      isMerchant: false,
     }
   }
 
@@ -464,6 +466,7 @@ const getLNURLPayResponse = ({
       valid: true,
       paymentType: PaymentType.Lnurl,
       lnurl: `${username}@${domain}`,
+      isMerchant: false,
     }
   }
 
@@ -475,6 +478,7 @@ const getLNURLPayResponse = ({
       valid: true,
       paymentType: PaymentType.Lnurl,
       lnurl: destination,
+      isMerchant: false,
     }
   }
 
@@ -485,6 +489,7 @@ const getLNURLPayResponse = ({
       valid: true,
       paymentType: PaymentType.Lnurl,
       lnurl,
+      isMerchant: false,
     }
   }
 
@@ -497,6 +502,7 @@ const getLNURLPayResponse = ({
       valid: true,
       paymentType: PaymentType.Lnurl,
       lnurl: merchantLightningAddress,
+      isMerchant: true,
     }
   }
 

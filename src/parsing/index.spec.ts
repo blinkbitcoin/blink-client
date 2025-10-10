@@ -99,6 +99,7 @@ describe("parsePaymentDestination validations", () => {
         paymentType: PaymentType.Lnurl,
         valid: true,
         lnurl: lnUrlInvoice,
+        isMerchant: false,
       }),
     )
   })
@@ -114,6 +115,7 @@ describe("parsePaymentDestination validations", () => {
         paymentType: PaymentType.Lnurl,
         valid: true,
         lnurl: lnUrlW,
+        isMerchant: false,
       }),
     )
   })
@@ -129,6 +131,7 @@ describe("parsePaymentDestination validations", () => {
         paymentType: PaymentType.Lnurl,
         valid: true,
         lnurl: lnUrlP,
+        isMerchant: false,
       }),
     )
   })
@@ -144,6 +147,7 @@ describe("parsePaymentDestination validations", () => {
         paymentType: PaymentType.Lnurl,
         valid: true,
         lnurl: lnUrlInvoice,
+        isMerchant: false,
       }),
     )
   })
@@ -159,6 +163,7 @@ describe("parsePaymentDestination validations", () => {
         paymentType: PaymentType.Lnurl,
         valid: true,
         lnurl: lnUrlInvoice,
+        isMerchant: false,
       }),
     )
   })
@@ -188,6 +193,7 @@ describe("parsePaymentDestination validations", () => {
         paymentType: PaymentType.Lnurl,
         valid: true,
         lnurl: externalLnAddress,
+        isMerchant: false,
       }),
     )
   })
@@ -203,6 +209,7 @@ describe("parsePaymentDestination validations", () => {
         paymentType: PaymentType.Lnurl,
         valid: true,
         lnurl: externalLnAddress,
+        isMerchant: false,
       }),
     )
   })
@@ -701,6 +708,7 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
           paymentType: PaymentType.Lnurl,
           lnurl: `+50370123456@${lnAddressDomains[0]}`,
           valid: true,
+          isMerchant: false,
         },
       },
       {
@@ -711,6 +719,7 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
           paymentType: PaymentType.Lnurl,
           lnurl: `50370123456@${lnAddressDomains[0]}`,
           valid: true,
+          isMerchant: false,
         },
       },
       {
@@ -721,6 +730,7 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
           paymentType: PaymentType.Lnurl,
           lnurl: `0050370123456@${lnAddressDomains[0]}`,
           valid: true,
+          isMerchant: false,
         },
       },
       {
@@ -731,6 +741,7 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
           paymentType: PaymentType.Lnurl,
           lnurl: `00 503 7012 3456@${lnAddressDomains[0]}`,
           valid: true,
+          isMerchant: false,
         },
       },
       {
@@ -741,6 +752,7 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
           paymentType: PaymentType.Lnurl,
           lnurl: `+12025550123@${lnAddressDomains[0]}`,
           valid: true,
+          isMerchant: false,
         },
       },
       {
@@ -751,6 +763,7 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
           paymentType: PaymentType.Lnurl,
           lnurl: `0012025550123@${lnAddressDomains[0]}`,
           valid: true,
+          isMerchant: false,
         },
       },
       {
@@ -818,6 +831,7 @@ describe("parsePaymentDestination Merchant QR", () => {
         valid: true,
         lnurl:
           "00020129530023za.co.electrum.picknpay.za.co.ecentric0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@cryptoqr.net",
+        isMerchant: true,
       }),
     )
   })
@@ -838,6 +852,7 @@ describe("parsePaymentDestination Merchant QR", () => {
         valid: true,
         lnurl:
           "00020129530023za.co.electrum.picknpay.za.co.ecentric0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@staging.cryptoqr.net",
+        isMerchant: true,
       }),
     )
   })
