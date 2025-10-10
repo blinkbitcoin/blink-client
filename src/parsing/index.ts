@@ -335,15 +335,23 @@ const getPaymentType = ({
     return PaymentType.Onchain
   }
 
+  if (isValidPhoneNumber(destinationWithoutProtocol)) {
+    return PaymentType.Lnurl
+  }
+
+  const merchantLightningAddress = convertMerchantQRToLightningAddress({
+    qrContent: rawDestination,
+    network,
+  })
+  if (merchantLightningAddress) {
+    return PaymentType.Lnurl
+  }
+
   const handle = destinationWithoutProtocol.match(/^(http|\/\/)/iu)
     ? destinationWithoutProtocol.split("/")[
         destinationWithoutProtocol.split("/").length - 1
       ]
     : destinationWithoutProtocol
-
-  if (isValidPhoneNumber(handle)) {
-    return PaymentType.Lnurl
-  }
 
   if (handle?.match(reUsername)) {
     return PaymentType.Intraledger
@@ -358,14 +366,6 @@ const getPaymentType = ({
     )
   ) {
     return PaymentType.IntraledgerWithFlag
-  }
-
-  const merchantLightningAddress = convertMerchantQRToLightningAddress({
-    qrContent: rawDestination,
-    network,
-  })
-  if (merchantLightningAddress) {
-    return PaymentType.Lnurl
   }
 
   return PaymentType.Unknown
