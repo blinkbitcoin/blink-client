@@ -126,11 +126,18 @@ describe("convertMerchantQRToLightningAddress", () => {
       expected: "CRSTPC-12-345-6789-10-11@cryptoqr.net",
     },
     {
-      description: "ScanToPay QR code",
+      description: "ScanToPay URL",
       qrContent: "https://qa.scantopay.io/pluto/public/qr/8784599487",
       network: "mainnet" as Network,
       expected:
         "https%3A%2F%2Fqa.scantopay.io%2Fpluto%2Fpublic%2Fqr%2F8784599487@cryptoqr.net",
+    },
+    {
+      description: "ScanToPay 10-digit code",
+      qrContent: "8784599487",
+      network: "mainnet" as Network,
+      expected:
+        "8784599487@cryptoqr.net",
     },
     {
       description: "Snapscan QR code",
@@ -170,6 +177,12 @@ describe("convertMerchantQRToLightningAddress", () => {
       description: "invalid merchant identifier in EMV format",
       qrContent:
         "00020129530023za.co.unknown.merchant0122RD2HAK3KTI53EC/confirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2",
+      network: "mainnet" as Network,
+    },
+    {
+      description: "10 digits with other text",
+      qrContent:
+        "Call me at 1234567890 for more details",
       network: "mainnet" as Network,
     },
   ])("returns null for $description", ({ qrContent, network }) => {
