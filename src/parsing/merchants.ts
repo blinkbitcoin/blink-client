@@ -131,9 +131,20 @@ export const merchants: MerchantConfig[] = [
     },
   },
   {
-    id: "scantopay",
+    id: "scantopay-url",
     displayCurrency: "ZAR",
     identifierRegex: /(?<identifier>.*(scantopay\.io).*)/iu,
+    defaultDomain: "cryptoqr.net",
+    domains: {
+      mainnet: "cryptoqr.net",
+      signet: "staging.cryptoqr.net",
+      regtest: "staging.cryptoqr.net",
+    },
+  },
+  {
+    id: "scantopay-10-digits",
+    displayCurrency: "ZAR",
+    identifierRegex: /^(?<identifier>\d{10})$/iu,
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
