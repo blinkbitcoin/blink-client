@@ -144,6 +144,12 @@ describe("convertMerchantQRToLightningAddress", () => {
       network: "mainnet" as Network,
       expected: "https%3A%2F%2Fpos.snapscan.io%2Fqr%2FSTB2ACC8@cryptoqr.net",
     },
+    {
+      description: "Snapscan QR code",
+      qrContent: "http://5.zap.pe?t=4&i=rAT%)=o\O'Bd2Cl!WXAE('\"=7F>)aN!<>?YJ-3ad!l+gR:Ms_d6t(?`:Msuo(1_D>CLT+XA9i,Sd+8<$\"98E32`WfP1,:Qc!!!'g('4I;\"u.nn!!3-#FDld%!!-%alYMQ:O@#?E!<<*\"!!-5+",
+      network: "mainnet" as Network,
+      expected: "http%3A%2F%2F5.zap.pe%3Ft%3D4%26i%3DrAT%25%29%3Do%5CO%27Bd2Cl%21WXAE%28%27%22%3D7F%3E%29aN%21%3C%3E%3FYJ-3ad%21l%2BgR%3AMs_d6t%28%3F%60%3AMsuo%281_D%3ECLT%2BXA9i%2CSd%2B8%3C%24%2298E32%60WfP1%2C%3AQc%21%21%21%27g%28%274I%3B%22u.nn%21%213-%23FDld%25%21%21-%25alYMQ%3AO%40%23%3FE%21%3C%3C%2A%22%21%21-5%2B",
+    }
   ])("$description", ({ qrContent, network, expected }) => {
     const result = convertMerchantQRToLightningAddress({ qrContent, network })
     expect(result).toBe(expected)
