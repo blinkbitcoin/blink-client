@@ -153,7 +153,7 @@ export default [
       ],
 
       "new-parens": "error",
-      "newline-per-chained-call": "error",
+      "newline-per-chained-call": "off",
       "no-alert": "error",
       "no-array-constructor": "error",
       "no-await-in-loop": "error",
