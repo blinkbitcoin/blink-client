@@ -165,6 +165,14 @@ export const merchants: MerchantConfig[] = [
   },
 ]
 
+// strict URI encode adhering to RFC 3986
+export const strictUriEncode = (uriComponent: string | number | boolean): string => {
+  return encodeURIComponent(uriComponent).replace(
+    /[!'()*]/g,
+    (value) => `%${value.charCodeAt(0).toString(16).toUpperCase()}`,
+  )
+}
+
 export const convertMerchantQRToLightningAddress = ({
   qrContent,
   network,
@@ -185,7 +193,7 @@ export const convertMerchantQRToLightningAddress = ({
     if (match?.groups?.identifier) {
       const domain = merchant.domains[network] || merchant.defaultDomain
       acc.push({
-        lnurl: `${encodeURIComponent(match.groups.identifier)}@${domain}`,
+        lnurl: `${strictUriEncode(match.groups.identifier)}@${domain}`,
         displayCurrency: merchant.displayCurrency,
       })
     }

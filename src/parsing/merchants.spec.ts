@@ -1,5 +1,9 @@
 import type { Network } from "./types"
-import { convertMerchantQRToLightningAddress, merchants } from "./merchants"
+import {
+  convertMerchantQRToLightningAddress,
+  merchants,
+  strictUriEncode,
+} from "./merchants"
 
 describe("convertMerchantQRToLightningAddress", () => {
   // Test cases for valid QR contents and networks
@@ -80,6 +84,13 @@ describe("convertMerchantQRToLightningAddress", () => {
       network: "mainnet" as Network,
       expected:
         "http%3A%2F%2F2.zap.pe%3Ft%3D6%26i%3D40895%3A49955%3A7%5B34%7C0.00%7C3%3A10%5B39%7CZAR%2C38%7CDillonDev@cryptoqr.net",
+    },
+    {
+      description: "Zapper QR code with zap.pe domain",
+      qrContent: `http://5.zap.pe?t=4&i=rAT%)=o\\O'Bd2Cl!WXAE('"=7F>)aN!<>?YJ-3ad!l+gR:Ms_d6t(?\`:Msuo(3!l"AoVg2Gq^paT]Z?Y"98E32\`WZS1,L\`f!!!'g('4I;"u.qo!!3-#/*^XK!!-%alYMQ:O@#?E!<<*"!!-5+`,
+      network: "mainnet" as Network,
+      expected:
+        "http%3A%2F%2F5.zap.pe%3Ft%3D4%26i%3DrAT%25%29%3Do%5CO%27Bd2Cl%21WXAE%28%27%22%3D7F%3E%29aN%21%3C%3E%3FYJ-3ad%21l%2BgR%3AMs_d6t%28%3F%60%3AMsuo%283%21l%22AoVg2Gq%5EpaT%5DZ%3FY%2298E32%60WZS1%2CL%60f%21%21%21%27g%28%274I%3B%22u.qo%21%213-%23%2F%2A%5EXK%21%21-%25alYMQ%3AO%40%23%3FE%21%3C%3C%2A%22%21%21-5%2B@cryptoqr.net",
     },
     {
       description: "Pay@ Bill Payment QR codes",
@@ -341,5 +352,67 @@ describe("convertMerchantQRToLightningAddress with displayCurrency", () => {
     })
 
     expect(result).toBe("test-payment-qr@single-merchant.com")
+  })
+})
+
+describe("strictUriEncode", () => {
+  test("encodes exclamation mark", () => {
+    expect(strictUriEncode("unicorn!foobar")).toBe("unicorn%21foobar")
+  })
+
+  test("encodes single quote", () => {
+    expect(strictUriEncode("unicorn'foobar")).toBe("unicorn%27foobar")
+  })
+
+  test("encodes asterisk", () => {
+    expect(strictUriEncode("unicorn*foobar")).toBe("unicorn%2Afoobar")
+  })
+
+  test("encodes opening parenthesis", () => {
+    expect(strictUriEncode("unicorn(foobar")).toBe("unicorn%28foobar")
+  })
+
+  test("encodes closing parenthesis", () => {
+    expect(strictUriEncode("unicorn)foobar")).toBe("unicorn%29foobar")
+  })
+
+  test("encodes multiple special characters", () => {
+    expect(strictUriEncode("unicorn!'()*foobar")).toBe("unicorn%21%27%28%29%2Afoobar")
+  })
+
+  test("produces different result from encodeURIComponent for asterisk", () => {
+    const input = "unicorn*foobar"
+    expect(strictUriEncode(input)).not.toBe(encodeURIComponent(input))
+    expect(strictUriEncode(input)).toBe("unicorn%2Afoobar")
+    expect(encodeURIComponent(input)).toBe("unicorn*foobar")
+  })
+
+  test("handles strings without special characters", () => {
+    expect(strictUriEncode("unicornfoobar")).toBe("unicornfoobar")
+  })
+
+  test("handles empty string", () => {
+    expect(strictUriEncode("")).toBe("")
+  })
+
+  test("handles numbers", () => {
+    expect(strictUriEncode(123)).toBe("123")
+  })
+
+  test("handles boolean values", () => {
+    expect(strictUriEncode(true)).toBe("true")
+    expect(strictUriEncode(false)).toBe("false")
+  })
+
+  test("encodes URL-unsafe characters along with RFC 3986 reserved characters", () => {
+    expect(strictUriEncode("hello world!")).toBe("hello%20world%21")
+    expect(strictUriEncode("test/path")).toBe("test%2Fpath")
+    expect(strictUriEncode("a=b&c=d")).toBe("a%3Db%26c%3Dd")
+    expect(strictUriEncode("test?query")).toBe("test%3Fquery")
+  })
+
+  test("handles Unicode characters", () => {
+    expect(strictUriEncode("测试")).toBe("%E6%B5%8B%E8%AF%95")
+    expect(strictUriEncode("hello!测试")).toBe("hello%21%E6%B5%8B%E8%AF%95")
   })
 })
