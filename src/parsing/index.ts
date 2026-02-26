@@ -445,6 +445,26 @@ const getLNURLPayResponse = ({
   | UnknownPaymentDestination => {
   const trimmed = destination.trim()
 
+  const lnAddress = utils.parseLightningAddress(trimmed)
+  if (lnAddress) {
+    const { username, domain } = lnAddress
+
+    if (lnAddressDomains.find((lnAddressDomain) => lnAddressDomain === domain)) {
+      return getIntraLedgerPayResponse({
+        destinationWithoutProtocol: username,
+        lnAddressDomains,
+        destination,
+      })
+    }
+
+    return {
+      valid: true,
+      paymentType: PaymentType.Lnurl,
+      lnurl: `${username}@${domain}`,
+      isMerchant: false,
+    }
+  }
+
   if (isValidPhoneNumber(trimmed)) {
     if (inputSource === "qr") {
       const merchantLightningAddress = convertMerchantQRToLightningAddress({
@@ -467,26 +487,6 @@ const getLNURLPayResponse = ({
       valid: true,
       paymentType: PaymentType.Lnurl,
       lnurl: `${trimmed}@${domain}`,
-      isMerchant: false,
-    }
-  }
-
-  const lnAddress = utils.parseLightningAddress(destination)
-  if (lnAddress) {
-    const { username, domain } = lnAddress
-
-    if (lnAddressDomains.find((lnAddressDomain) => lnAddressDomain === domain)) {
-      return getIntraLedgerPayResponse({
-        destinationWithoutProtocol: username,
-        lnAddressDomains,
-        destination,
-      })
-    }
-
-    return {
-      valid: true,
-      paymentType: PaymentType.Lnurl,
-      lnurl: `${username}@${domain}`,
       isMerchant: false,
     }
   }
