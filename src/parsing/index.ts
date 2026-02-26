@@ -534,6 +534,14 @@ const getLNURLPayResponse = ({
   }
 }
 
+const tryDecodeBolt11 = (invoice: string, network: Network) => {
+  try {
+    return bolt11.decode(invoice, parseBolt11Network(network))
+  } catch {
+    return null
+  }
+}
+
 const getLightningPayResponse = ({
   destination,
   network,
@@ -560,10 +568,8 @@ const getLightningPayResponse = ({
     }
   }
 
-  let payReq: bolt11.PaymentRequestObject | undefined = undefined
-  try {
-    payReq = bolt11.decode(lnProtocol, parseBolt11Network(network))
-  } catch {
+  const payReq = tryDecodeBolt11(lnProtocol, network)
+  if (!payReq) {
     return {
       valid: false,
       paymentType,
