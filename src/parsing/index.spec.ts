@@ -878,6 +878,102 @@ describe("parsePaymentDestination Merchant QR", () => {
   })
 })
 
+describe("parsePaymentDestination - Numeric Lightning Addresses", () => {
+  it("validates an external lightning address with purely numeric username", () => {
+    const result = parsePaymentDestination({
+      destination: "254793673300@bitcoin.co.ke",
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "254793673300@bitcoin.co.ke",
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("validates an external lightning address with phone number username (with +)", () => {
+    const result = parsePaymentDestination({
+      destination: "+254793673300@bitcoin.co.ke",
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "+254793673300@bitcoin.co.ke",
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("validates an external lightning address with numeric username on signet", () => {
+    const result = parsePaymentDestination({
+      destination: "123456789@external-domain.com",
+      network: "signet",
+      lnAddressDomains: ["blink.sv"],
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "123456789@external-domain.com",
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("rejects internal lightning address with purely numeric username", () => {
+    const result = parsePaymentDestination({
+      destination: "254793673300@blink.sv",
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Unknown,
+        valid: false,
+      }),
+    )
+  })
+
+  it("validates an external lightning address with alphanumeric username", () => {
+    const result = parsePaymentDestination({
+      destination: "user123@bitcoin.co.ke",
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "user123@bitcoin.co.ke",
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("validates an external lightning address with numeric username and lightning: protocol", () => {
+    const result = parsePaymentDestination({
+      destination: "lightning:254793673300@bitcoin.co.ke",
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "254793673300@bitcoin.co.ke",
+        isMerchant: false,
+      }),
+    )
+  })
+})
+
 describe("parsePaymentDestination QR Input with Merchant Priority", () => {
   const phoneNumber = "+27123456789"
   const mockMerchantLnurl = "merchant-identifier@cryptoqr.net"
