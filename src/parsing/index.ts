@@ -259,6 +259,7 @@ type ParsePaymentDestinationArgs = {
   lnAddressDomains: string[]
   inputSource?: InputSource
   displayCurrency?: string
+  preferLnurlForInternalHandles?: boolean
 }
 
 const getLNParam = (data: string): string | null => {
@@ -375,30 +376,46 @@ const getIntraLedgerPayResponse = ({
   destinationWithoutProtocol,
   destination,
   lnAddressDomains,
+  preferLnurlForInternalHandles = false,
 }: {
   destinationWithoutProtocol: string
   destination: string
   lnAddressDomains: string[]
-}): IntraledgerPaymentDestination | UnknownPaymentDestination => {
-  const handle = destinationWithoutProtocol.match(/^(http|\/\/)/iu)
+  preferLnurlForInternalHandles?: boolean
+}):
+  | IntraledgerPaymentDestination
+  | LnurlPaymentDestination
+  | UnknownPaymentDestination => {
+  const isHttpHandle = Boolean(destinationWithoutProtocol.match(/^(http|\/\/)/iu))
+  const handle = isHttpHandle
     ? destinationWithoutProtocol.split("/")[
         destinationWithoutProtocol.split("/").length - 1
       ]
     : destinationWithoutProtocol
 
-  if (destinationWithoutProtocol.match(/^(http|\/\/)/iu)) {
-    const domain = new URL(destination).hostname
-    if (!lnAddressDomains.find((lnAddressDomain) => lnAddressDomain === domain)) {
-      return {
-        valid: false,
-        paymentType: PaymentType.Intraledger,
-        handle,
-        invalidReason: InvalidIntraledgerReason.WrongDomain,
-      }
+  const domain = isHttpHandle ? new URL(destination).hostname : lnAddressDomains[0]
+
+  if (
+    isHttpHandle &&
+    !lnAddressDomains.find((lnAddressDomain) => lnAddressDomain === domain)
+  ) {
+    return {
+      valid: false,
+      paymentType: PaymentType.Intraledger,
+      handle,
+      invalidReason: InvalidIntraledgerReason.WrongDomain,
     }
   }
 
   if (handle?.match(reUsername)) {
+    if (preferLnurlForInternalHandles && domain) {
+      return {
+        valid: true,
+        paymentType: PaymentType.Lnurl,
+        lnurl: `${handle}@${domain}`,
+        isMerchant: false,
+      }
+    }
     return {
       valid: true,
       paymentType: PaymentType.Intraledger,
@@ -433,12 +450,14 @@ const getLNURLPayResponse = ({
   network,
   inputSource = "manual",
   displayCurrency,
+  preferLnurlForInternalHandles = false,
 }: {
   lnAddressDomains: string[]
   destination: string
   network: Network
   inputSource?: InputSource
   displayCurrency?: string
+  preferLnurlForInternalHandles?: boolean
 }):
   | LnurlPaymentDestination
   | IntraledgerPaymentDestination
@@ -449,7 +468,13 @@ const getLNURLPayResponse = ({
   if (lnAddress) {
     const { username, domain } = lnAddress
 
-    if (lnAddressDomains.find((lnAddressDomain) => lnAddressDomain === domain)) {
+    const resolveAsLnurl =
+      preferLnurlForInternalHandles && Boolean(username.match(reUsername))
+
+    if (
+      !resolveAsLnurl &&
+      lnAddressDomains.find((lnAddressDomain) => lnAddressDomain === domain)
+    ) {
       return getIntraLedgerPayResponse({
         destinationWithoutProtocol: username,
         lnAddressDomains,
@@ -681,6 +706,7 @@ export const parsePaymentDestination = ({
   lnAddressDomains,
   inputSource = "manual",
   displayCurrency,
+  preferLnurlForInternalHandles = false,
 }: ParsePaymentDestinationArgs): ParsedPaymentDestination => {
   if (!destination) {
     return { paymentType: PaymentType.NullInput }
@@ -702,6 +728,7 @@ export const parsePaymentDestination = ({
         network,
         inputSource,
         displayCurrency,
+        preferLnurlForInternalHandles,
       })
     case PaymentType.Lightning:
       return getLightningPayResponse({ destination, network })
@@ -713,6 +740,7 @@ export const parsePaymentDestination = ({
         destinationWithoutProtocol,
         destination,
         lnAddressDomains,
+        preferLnurlForInternalHandles,
       })
     case PaymentType.Unified:
       return getUnifiedPayResponse({

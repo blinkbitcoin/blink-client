@@ -695,6 +695,255 @@ describe("parsePaymentDestination IntraLedger handles", () => {
   })
 })
 
+describe("parsePaymentDestination with preferLnurlForInternalHandles", () => {
+  const lnAddressDomains = ["blink.sv"]
+
+  it("keeps an internal lightning address as intraledger when the flag is off", () => {
+    const result = parsePaymentDestination({
+      destination: internalLnAddress,
+      network: "mainnet",
+      lnAddressDomains,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Intraledger,
+        handle: "username",
+      }),
+    )
+  })
+
+  it("resolves an internal lightning address as lnurl when the flag is on", () => {
+    const result = parsePaymentDestination({
+      destination: internalLnAddress,
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: internalLnAddress,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("resolves a lightning address with protocol as lnurl when the flag is on", () => {
+    const result = parsePaymentDestination({
+      destination: `lightning:${internalLnAddress}`,
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: internalLnAddress,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("resolves a bare username as lnurl by appending the domain when the flag is on", () => {
+    const result = parsePaymentDestination({
+      destination: "username",
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: internalLnAddress,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("resolves an https url on an internal domain as lnurl when the flag is on", () => {
+    const result = parsePaymentDestination({
+      destination: "https://blink.sv/username",
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: internalLnAddress,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("resolves an https url on a secondary internal domain using its url hostname when the flag is on", () => {
+    const result = parsePaymentDestination({
+      destination: "https://pay.blink.sv/username",
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv", "pay.blink.sv"],
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "username@pay.blink.sv",
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("still resolves an external lightning address as lnurl when the flag is on", () => {
+    const result = parsePaymentDestination({
+      destination: externalLnAddress,
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: externalLnAddress,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("does not convert an intraledger handle with flag (usd) when the flag is on", () => {
+    const result = parsePaymentDestination({
+      destination: "username+usd",
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.IntraledgerWithFlag,
+        handle: "username",
+        flag: "usd",
+      }),
+    )
+  })
+
+  it("does not convert a lightning address with flag (usd) when the flag is on", () => {
+    const result = parsePaymentDestination({
+      destination: "username+usd@blink.sv",
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.IntraledgerWithFlag,
+        handle: "username",
+        flag: "usd",
+      }),
+    )
+  })
+
+  it("does not convert a purely numeric internal lightning address when the flag is on", () => {
+    const result = parsePaymentDestination({
+      destination: "254793673300@blink.sv",
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Unknown,
+        valid: false,
+      }),
+    )
+  })
+
+  it("resolves a lightning address on a secondary internal domain using its typed domain when the flag is on", () => {
+    const result = parsePaymentDestination({
+      destination: "username@pay.blink.sv",
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv", "pay.blink.sv"],
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "username@pay.blink.sv",
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("appends the primary domain to a bare username when several are configured", () => {
+    const result = parsePaymentDestination({
+      destination: "username",
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv", "pay.blink.sv"],
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "username@blink.sv",
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("keeps an http handle on a non-internal domain as WrongDomain when the flag is on", () => {
+    const result = parsePaymentDestination({
+      destination: "https://some.where/username",
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        valid: false,
+        paymentType: PaymentType.Intraledger,
+        invalidReason: InvalidIntraledgerReason.WrongDomain,
+      }),
+    )
+  })
+
+  it("keeps a bare username as intraledger when there is no domain to append", () => {
+    const result = parsePaymentDestination({
+      destination: "username",
+      network: "mainnet",
+      lnAddressDomains: [],
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Intraledger,
+        handle: "username",
+      }),
+    )
+  })
+
+  it("ignores the flag for phone numbers and still resolves them as a phone lnurl", () => {
+    const result = parsePaymentDestination({
+      destination: "+50370123456",
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: `+50370123456@${lnAddressDomains[0]}`,
+        isMerchant: false,
+      }),
+    )
+  })
+})
+
 describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
   const networks: Network[] = ["mainnet", "signet", "regtest"]
   const lnAddressDomains = ["blink.sv"]
