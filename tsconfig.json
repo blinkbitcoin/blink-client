@@ -14,8 +14,10 @@
     "esModuleInterop": true,
     "preserveSymlinks": true,
     "resolveJsonModule": true,
+    "types": ["node", "jest"],
     "declaration": true,
-    "noErrorTruncation": true
+    "noErrorTruncation": true,
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src", "eslint.config.mjs", "tsup.config.ts"]
 }
