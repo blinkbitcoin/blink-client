@@ -483,18 +483,17 @@ const getLNURLPayResponse = ({
       if (intraledgerResult.paymentType !== PaymentType.Unknown) {
         return intraledgerResult
       }
-      if (/^\+?\d+$/.test(username)) {
-        if (!preferLnurlForInternalHandles) {
-          return {
-            valid: true,
-            paymentType: PaymentType.Intraledger,
-            handle: username,
-          }
-        }
-      } else {
+      if (!/^\+?\d+$/.test(username)) {
         return {
           valid: false,
           paymentType: PaymentType.Unknown,
+        }
+      }
+      if (!preferLnurlForInternalHandles) {
+        return {
+          valid: true,
+          paymentType: PaymentType.Intraledger,
+          handle: username,
         }
       }
     }
