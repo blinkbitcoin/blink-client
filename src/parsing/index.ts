@@ -475,11 +475,15 @@ const getLNURLPayResponse = ({
       !resolveAsLnurl &&
       lnAddressDomains.find((lnAddressDomain) => lnAddressDomain === domain)
     ) {
-      return getIntraLedgerPayResponse({
+      const intraledgerResult = getIntraLedgerPayResponse({
         destinationWithoutProtocol: username,
         lnAddressDomains,
         destination,
       })
+      if (intraledgerResult.paymentType !== PaymentType.Unknown) {
+        return intraledgerResult
+      }
+      // Fall through to LNURL: username@domain is a valid Lightning Address (e.g. LNURL-P with phone-like local part)
     }
 
     return {

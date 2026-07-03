@@ -846,7 +846,7 @@ describe("parsePaymentDestination with preferLnurlForInternalHandles", () => {
     )
   })
 
-  it("does not convert a purely numeric internal lightning address when the flag is on", () => {
+  it("resolves a purely numeric internal lightning address as lnurl when the flag is on (LNURL-P phone@domain)", () => {
     const result = parsePaymentDestination({
       destination: "254793673300@blink.sv",
       network: "mainnet",
@@ -855,8 +855,10 @@ describe("parsePaymentDestination with preferLnurlForInternalHandles", () => {
     })
     expect(result).toEqual(
       expect.objectContaining({
-        paymentType: PaymentType.Unknown,
-        valid: false,
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "254793673300@blink.sv",
+        isMerchant: false,
       }),
     )
   })
@@ -1176,7 +1178,7 @@ describe("parsePaymentDestination - Numeric Lightning Addresses", () => {
     )
   })
 
-  it("rejects internal lightning address with purely numeric username", () => {
+  it("validates an internal lightning address with purely numeric username as lnurl (LNURL-P phone@domain)", () => {
     const result = parsePaymentDestination({
       destination: "254793673300@blink.sv",
       network: "mainnet",
@@ -1184,8 +1186,58 @@ describe("parsePaymentDestination - Numeric Lightning Addresses", () => {
     })
     expect(result).toEqual(
       expect.objectContaining({
-        paymentType: PaymentType.Unknown,
-        valid: false,
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "254793673300@blink.sv",
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("validates phone@domain format (0777491011@bitzed.xyz) as lnurl — regression for blink-wip#917", () => {
+    const result = parsePaymentDestination({
+      destination: "0777491011@bitzed.xyz",
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "0777491011@bitzed.xyz",
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("validates phone@internaldomain format (0777491011@blink.sv) as lnurl — regression for blink-wip#917", () => {
+    const result = parsePaymentDestination({
+      destination: "0777491011@blink.sv",
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "0777491011@blink.sv",
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("validates +256phone@domain format as lnurl — regression for blink-wip#917", () => {
+    const result = parsePaymentDestination({
+      destination: "+256777491011@bitzed.xyz",
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "+256777491011@bitzed.xyz",
+        isMerchant: false,
       }),
     )
   })
