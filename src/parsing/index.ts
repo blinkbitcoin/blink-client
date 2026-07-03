@@ -483,7 +483,20 @@ const getLNURLPayResponse = ({
       if (intraledgerResult.paymentType !== PaymentType.Unknown) {
         return intraledgerResult
       }
-      // Fall through to LNURL: username@domain is a valid Lightning Address (e.g. LNURL-P with phone-like local part)
+      if (/^\+?\d+$/.test(username)) {
+        if (!preferLnurlForInternalHandles) {
+          return {
+            valid: true,
+            paymentType: PaymentType.Intraledger,
+            handle: username,
+          }
+        }
+      } else {
+        return {
+          valid: false,
+          paymentType: PaymentType.Unknown,
+        }
+      }
     }
 
     return {

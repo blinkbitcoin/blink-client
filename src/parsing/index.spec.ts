@@ -1178,7 +1178,7 @@ describe("parsePaymentDestination - Numeric Lightning Addresses", () => {
     )
   })
 
-  it("validates an internal lightning address with purely numeric username as lnurl (LNURL-P phone@domain)", () => {
+  it("resolves internal lightning address with purely numeric username as intraledger", () => {
     const result = parsePaymentDestination({
       destination: "254793673300@blink.sv",
       network: "mainnet",
@@ -1186,10 +1186,9 @@ describe("parsePaymentDestination - Numeric Lightning Addresses", () => {
     })
     expect(result).toEqual(
       expect.objectContaining({
-        paymentType: PaymentType.Lnurl,
+        paymentType: PaymentType.Intraledger,
         valid: true,
-        lnurl: "254793673300@blink.sv",
-        isMerchant: false,
+        handle: "254793673300",
       }),
     )
   })
@@ -1210,7 +1209,7 @@ describe("parsePaymentDestination - Numeric Lightning Addresses", () => {
     )
   })
 
-  it("validates phone@internaldomain format (0777491011@blink.sv) as lnurl — regression for blink-wip#917", () => {
+  it("resolves phone@internaldomain format (0777491011@blink.sv) as intraledger — regression for blink-wip#917", () => {
     const result = parsePaymentDestination({
       destination: "0777491011@blink.sv",
       network: "mainnet",
@@ -1218,10 +1217,9 @@ describe("parsePaymentDestination - Numeric Lightning Addresses", () => {
     })
     expect(result).toEqual(
       expect.objectContaining({
-        paymentType: PaymentType.Lnurl,
+        paymentType: PaymentType.Intraledger,
         valid: true,
-        lnurl: "0777491011@blink.sv",
-        isMerchant: false,
+        handle: "0777491011",
       }),
     )
   })
