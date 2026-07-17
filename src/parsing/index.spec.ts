@@ -184,6 +184,22 @@ describe("parsePaymentDestination validations", () => {
     )
   })
 
+  it("routes an EVM-shaped Blink lightning address internally", () => {
+    const handle = "0xde709f2102306220921060314715629080e2fb77"
+    const result = parsePaymentDestination({
+      destination: `${handle}@blink.sv`,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Intraledger,
+        handle,
+      }),
+    )
+  })
+
   it("validates an external lightning address", () => {
     const result = parsePaymentDestination({
       destination: externalLnAddress,
