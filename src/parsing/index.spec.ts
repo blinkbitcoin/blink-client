@@ -1378,6 +1378,60 @@ describe("parsePaymentDestination QR Input with Merchant Priority", () => {
     )
   })
 
+  it("keeps an external Lightning Address on a merchant domain as LNURL", () => {
+    expect(
+      parsePaymentDestination({
+        destination: "alice@snapscan.com",
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+        inputSource: "manual",
+      }),
+    ).toEqual({
+      paymentType: PaymentType.Lnurl,
+      valid: true,
+      lnurl: "alice@snapscan.com",
+      isMerchant: false,
+    })
+  })
+
+  it("normalizes a lightning-prefixed manual merchant URL before matching", () => {
+    expect(
+      parsePaymentDestination({
+        destination: "lightning:https://pos.snapscan.io/qr/STB2ACC8",
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+        inputSource: "manual",
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "https%3A%2F%2Fpos.snapscan.io%2Fqr%2FSTB2ACC8@cryptoqr.net",
+        isMerchant: true,
+        merchant: expect.objectContaining({ id: "snapscan" }),
+      }),
+    )
+  })
+
+  it("trims QR merchant content before matching", () => {
+    expect(
+      parsePaymentDestination({
+        destination: " 8784599487 ",
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+        inputSource: "qr",
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "8784599487@cryptoqr.net",
+        isMerchant: true,
+        merchant: expect.objectContaining({ id: "scantopay-10-digits" }),
+      }),
+    )
+  })
+
   it("returns all matching merchants when a QR match is ambiguous", () => {
     jest.spyOn(merchants, "getMatchingMerchants").mockReturnValue(currencyMerchants)
 

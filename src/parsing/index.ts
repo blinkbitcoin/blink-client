@@ -479,16 +479,10 @@ const getMerchantLnurlPaymentDestination = ({
 const getLNURLPayResponse = ({
   lnAddressDomains,
   destination,
-  network,
-  inputSource = "manual",
-  displayCurrency,
   preferLnurlForInternalHandles = false,
 }: {
   lnAddressDomains: string[]
   destination: string
-  network: Network
-  inputSource?: InputSource
-  displayCurrency?: string
   preferLnurlForInternalHandles?: boolean
 }):
   | LnurlPaymentDestination
@@ -503,10 +497,7 @@ const getLNURLPayResponse = ({
     const resolveAsLnurl =
       preferLnurlForInternalHandles && Boolean(username.match(reUsername))
 
-    if (
-      !resolveAsLnurl &&
-      lnAddressDomains.find((lnAddressDomain) => lnAddressDomain === domain)
-    ) {
+    if (!resolveAsLnurl && lnAddressDomains.includes(domain)) {
       return getIntraLedgerPayResponse({
         destinationWithoutProtocol: username,
         lnAddressDomains,
@@ -523,16 +514,6 @@ const getLNURLPayResponse = ({
   }
 
   if (isValidPhoneNumber(trimmed)) {
-    if (inputSource === "qr") {
-      const merchantResponse = getMerchantLnurlPaymentDestination({
-        merchants: getMatchingMerchants({ qrContent: trimmed, network }),
-        displayCurrency,
-      })
-      if (merchantResponse) {
-        return merchantResponse
-      }
-    }
-
     const domain = lnAddressDomains[0]
     return {
       valid: true,
@@ -542,10 +523,7 @@ const getLNURLPayResponse = ({
     }
   }
 
-  if (
-    destination.slice(0, 9) === "lnurlw://" ||
-    destination.slice(0, 9) === "lnurlp://"
-  ) {
+  if (destination.startsWith("lnurlw://") || destination.startsWith("lnurlp://")) {
     return {
       valid: true,
       paymentType: PaymentType.Lnurl,
@@ -563,14 +541,6 @@ const getLNURLPayResponse = ({
       lnurl,
       isMerchant: false,
     }
-  }
-
-  const merchantResponse = getMerchantLnurlPaymentDestination({
-    merchants: getMatchingMerchants({ qrContent: destination, network }),
-    displayCurrency,
-  })
-  if (merchantResponse) {
-    return merchantResponse
   }
 
   return {
@@ -733,9 +703,22 @@ export const parsePaymentDestination = ({
   }
 
   const { protocol, destinationWithoutProtocol } = getProtocolAndData(destination)
+  const destinationForParsing =
+    protocol === "lightning" ? destinationWithoutProtocol : destination
+  const merchantContent = destinationForParsing.trim()
+  const paymentType = getPaymentType({
+    protocol,
+    destinationWithoutProtocol,
+    rawDestination: destination,
+  })
 
-  if (inputSource === "qr" || !isValidPhoneNumber(destinationWithoutProtocol)) {
-    const merchants = getMatchingMerchants({ qrContent: destination, network })
+  if (
+    inputSource === "qr" ||
+    paymentType === PaymentType.Intraledger ||
+    paymentType === PaymentType.IntraledgerWithFlag ||
+    paymentType === PaymentType.Unknown
+  ) {
+    const merchants = getMatchingMerchants({ qrContent: merchantContent, network })
     const merchantResponse = getMerchantLnurlPaymentDestination({
       merchants,
       displayCurrency,
@@ -748,19 +731,11 @@ export const parsePaymentDestination = ({
     }
   }
 
-  const paymentType = getPaymentType({
-    protocol,
-    destinationWithoutProtocol,
-    rawDestination: destination,
-  })
   switch (paymentType) {
     case PaymentType.Lnurl:
       return getLNURLPayResponse({
         lnAddressDomains,
-        destination: protocol === "lightning" ? destinationWithoutProtocol : destination,
-        network,
-        inputSource,
-        displayCurrency,
+        destination: destinationForParsing,
         preferLnurlForInternalHandles,
       })
     case PaymentType.Lightning:
