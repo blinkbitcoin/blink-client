@@ -1,5 +1,5 @@
 import { getSwapAddressFamily, type SwapAddressFamily } from "./swap-recipient-validators"
-import type { Merchant } from "./index"
+import type { Merchant, MerchantConfig } from "./index"
 import type { Network } from "../types"
 
 type SwapCapability = {
@@ -167,4 +167,17 @@ export const getBoltzSwapMerchants = (
       title: `${asset} ${displayNetwork}`,
       description: `Swap sats to ${asset} on ${displayNetwork}`,
     }))
+}
+
+export const boltzSwapMerchant: MerchantConfig = {
+  id: "blink-boltz-swap",
+  category: "swap",
+  title: "Boltz Swap",
+  description: "Swap sats with Boltz",
+  companyName: "Boltz",
+  termsUrl: "https://boltz.exchange/terms",
+  getIdentifier: getBoltzSwapIdentifier,
+  defaultDomain: boltzSwapDomains.mainnet,
+  domains: boltzSwapDomains,
+  getMerchants: getBoltzSwapMerchants,
 }
