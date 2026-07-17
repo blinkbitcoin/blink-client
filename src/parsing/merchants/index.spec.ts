@@ -329,6 +329,13 @@ describe("getMatchingMerchants", () => {
         description: "Swap sats to USDT on Polygon PoS",
       }),
     )
+    expect(matches.find(({ id }) => id === "blink-boltz-usdc-avalanche-c-chain")).toEqual(
+      expect.objectContaining({
+        lnurl: `${evmRecipient}+USDC+AvalancheCChain@swap.blink.sv`,
+        title: "USDC Avalanche C-Chain",
+        description: "Swap sats to USDC on Avalanche C-Chain",
+      }),
+    )
     expect(
       matches.every(
         (match) => !Object.prototype.hasOwnProperty.call(match, "displayCurrency"),

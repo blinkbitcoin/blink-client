@@ -125,7 +125,7 @@ const swapCapabilities: SwapCapability[] = [
   {
     asset: "USDC",
     displayNetwork: "Avalanche C-Chain",
-    lightningAddressNetwork: "Avalanche C-Chain",
+    lightningAddressNetwork: "AvalancheCChain",
     networkSlug: "avalanche-c-chain",
     addressFamily: "evm",
   },
