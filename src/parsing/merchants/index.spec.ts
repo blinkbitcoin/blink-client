@@ -430,7 +430,7 @@ describe("getMatchingMerchants", () => {
   test.each([
     "lq1qqgqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpztehvrdr30n",
     "PwGP8BzRUHQwchwwPuzAe9WqskgmbKp88f",
-    "VTpt4EFo6MdsgmAF25W3DMSrDyQjmjpN2yPLYAyoTjLzhu2iJbB6uZTZCk5MTMtXdNrrn23bVpUSWmV7",
+    "VTpt5oiR6rTsr6ftQwQzUD8nb4PFhj8Dp3FNCqo4xfMHxcN9dmuKFfsF3Lb1bCZdqpuisAUHwvvLQ8Zw",
   ])("accepts Liquid recipient encoding %s", (recipient) => {
     expect(getMatchingMerchants({ qrContent: recipient, network: "mainnet" })).toEqual([
       expect.objectContaining({ lnurl: `${recipient}+LBTC+Liquid@swap.blink.sv` }),

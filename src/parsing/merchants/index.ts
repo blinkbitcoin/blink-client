@@ -2,7 +2,7 @@ import { boltzSwapMerchant } from "./boltz-swap-merchants"
 import { moneyBadgerMerchants } from "./money-badger-merchants"
 import type { Network } from "../types"
 
-export { getIdentifierFromRegex } from "./identifier-regex"
+export { getIdentifierFromRegex } from "./helpers"
 
 export type MerchantCategory = "merchant-payment" | "swap"
 
@@ -45,30 +45,30 @@ export const getMatchingMerchants = ({
     return []
   }
 
-  return merchants.reduce<Merchant[]>((matchedMerchants, merchant) => {
+  const matchedMerchants: Merchant[] = []
+
+  for (const merchant of merchants) {
     const identifier = merchant.getIdentifier(qrContent)
-    if (!identifier) {
-      return matchedMerchants
+    if (identifier) {
+      if (merchant.getMerchants) {
+        matchedMerchants.push(...merchant.getMerchants(identifier, network))
+      } else {
+        const domain = merchant.domains[network] ?? merchant.defaultDomain
+        matchedMerchants.push({
+          id: merchant.id,
+          lnurl: `${strictUriEncode(identifier)}@${domain}`,
+          category: merchant.category,
+          title: merchant.title,
+          description: merchant.description,
+          companyName: merchant.companyName,
+          termsUrl: merchant.termsUrl,
+          displayCurrency: merchant.displayCurrency,
+        })
+      }
     }
+  }
 
-    if (merchant.getMerchants) {
-      matchedMerchants.push(...merchant.getMerchants(identifier, network))
-      return matchedMerchants
-    }
-
-    const domain = merchant.domains[network] ?? merchant.defaultDomain
-    matchedMerchants.push({
-      id: merchant.id,
-      lnurl: `${strictUriEncode(identifier)}@${domain}`,
-      category: merchant.category,
-      title: merchant.title,
-      description: merchant.description,
-      companyName: merchant.companyName,
-      termsUrl: merchant.termsUrl,
-      displayCurrency: merchant.displayCurrency,
-    })
-    return matchedMerchants
-  }, [])
+  return matchedMerchants
 }
 
 export const getCurrencyMatchedMerchant = ({

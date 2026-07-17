@@ -171,11 +171,9 @@ export const getBoltzSwapMerchants = (
 
 export const boltzSwapMerchant: MerchantConfig = {
   id: "blink-boltz-swap",
-  category: "swap",
+  ...boltzMerchantDetails,
   title: "Boltz Swap",
   description: "Swap sats with Boltz",
-  companyName: "Boltz",
-  termsUrl: "https://boltz.exchange/terms",
   getIdentifier: getBoltzSwapIdentifier,
   defaultDomain: boltzSwapDomains.mainnet,
   domains: boltzSwapDomains,
