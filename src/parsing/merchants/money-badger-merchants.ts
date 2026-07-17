@@ -1,5 +1,5 @@
 import { getIdentifierFromRegex } from "./helpers"
-import type { Merchant, MerchantConfig } from "."
+import type { Merchant, MerchantConfig } from "./types"
 
 const moneyBadgerTermsUrl = "https://www.moneybadger.co.za/deals/terms-and-conditions"
 const moneyBadgerMerchant = {

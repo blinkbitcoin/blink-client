@@ -1,5 +1,5 @@
 import { getSwapAddressFamily, type SwapAddressFamily } from "./swap-recipient-validators"
-import type { Merchant, MerchantConfig } from "./index"
+import type { Merchant, MerchantConfig } from "./types"
 import type { Network } from "../types"
 
 type SwapCapability = {
