@@ -261,7 +261,7 @@ describe("getMatchingMerchants", () => {
         lnurl: "CRSTPC-12-345-6789-10-11@staging.cryptoqr.net",
         category: "merchant-payment",
         title: "Servest Parking",
-        description: "",
+        description: "Money Badger merchant",
         companyName: "Money Badger",
         termsUrl: "https://www.moneybadger.co.za/deals/terms-and-conditions",
         displayCurrency: "ZAR",
