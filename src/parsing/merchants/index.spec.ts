@@ -1,12 +1,12 @@
 /* eslint-disable max-lines */
-import type { Network } from "./types"
+import type { Network } from "../types"
 import {
   convertMerchantQRToLightningAddress,
   getIdentifierFromRegex,
   getMatchingMerchants,
   merchants,
   strictUriEncode,
-} from "./merchants"
+} from "."
 
 describe("convertMerchantQRToLightningAddress", () => {
   // Test cases for valid QR contents and networks
