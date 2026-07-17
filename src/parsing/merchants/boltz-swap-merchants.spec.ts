@@ -140,6 +140,21 @@ describe("Boltz swap merchants", () => {
       recipient: "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwc",
       count: 0,
     },
+    {
+      description: "invalid Tron version",
+      recipient: "TZJozAg1ruapycCicgz31GxvYJ1G1qELV7",
+      count: 0,
+    },
+    {
+      description: "short Tron payload",
+      recipient: "6vgvUCe6UMREQNmKiJ96L4nLvCGnfJ6N5",
+      count: 0,
+    },
+    {
+      description: "long Tron payload",
+      recipient: "2zSb5yFtu3WugTVR2WG5UG5N9uzvBP2eLLBB",
+      count: 0,
+    },
   ])("validates swap recipient encodings: $description", ({ recipient, count }) => {
     expect(
       getMatchingMerchants({ qrContent: recipient, network: "mainnet" }),
@@ -159,7 +174,11 @@ describe("Boltz swap merchants", () => {
   test.each([
     "ex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq0srvwt",
     "tex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq0yjyjs",
+    "ex13qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqsz9nv0",
+    "ex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3jpj8e",
     "lq1qqgqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpztehvrdr31n",
+    "lq1qqsqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgx3t8qqdkt6n",
+    "lq1qqgqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq5y376rwx7nwd",
   ])("rejects invalid Liquid recipient %s", (recipient) => {
     expect(getMatchingMerchants({ qrContent: recipient, network: "mainnet" })).toEqual([])
   })
