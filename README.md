@@ -23,6 +23,25 @@ const { valid, paymentType, amount } = parsePaymentDestination({
 })
 ```
 
+When a QR code or non-phone manual input matches one merchant payment integration, the
+result remains a valid `PaymentType.Lnurl` and includes `isMerchant: true` plus a
+`merchant` object. When the input matches multiple integrations that cannot be uniquely
+selected by `displayCurrency`, the result is:
+
+```ts
+{
+  paymentType: PaymentType.Merchant,
+  merchants: Merchant[],
+}
+```
+
+Each merchant includes its ID, Lightning address, category, display metadata, and an
+optional display currency. `category` is metadata only; consumers make all selection,
+filtering, regional eligibility, and policy decisions.
+
+`PaymentType.Merchant` requires consumer selection before payment and does not include a
+`valid` field. Branch on `paymentType` before relying on `valid` or initiating payment.
+
 ## Test
 
 Test with Jest framework:

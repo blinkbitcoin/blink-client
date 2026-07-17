@@ -6,7 +6,11 @@ import * as bitcoinjs from "bitcoinjs-lib"
 import * as ecc from "@bitcoinerlab/secp256k1"
 
 import type { Network, InputSource } from "./types"
-import { convertMerchantQRToLightningAddress } from "./merchants"
+import {
+  getCurrencyMatchedMerchant,
+  getMatchingMerchants,
+  type Merchant,
+} from "./merchants"
 
 bitcoinjs.initEccLib(ecc)
 
@@ -81,6 +85,7 @@ export const PaymentType = {
   IntraledgerWithFlag: "intraledgerWithFlag",
   Onchain: "onchain",
   Lnurl: "lnurl",
+  Merchant: "merchant",
   NullInput: "nullInput",
   Unified: "unified",
   Unknown: "unknown",
@@ -105,17 +110,31 @@ export type InvalidLnurlPaymentDestinationReason =
   (typeof InvalidLnurlPaymentDestinationReason)[keyof typeof InvalidLnurlPaymentDestinationReason]
 
 export type LnurlPaymentDestination =
+  | MerchantLnurlPaymentDestination
   | {
       paymentType: typeof PaymentType.Lnurl
       valid: true
       lnurl: string
-      isMerchant: boolean
+      isMerchant: false
     }
   | {
       paymentType: typeof PaymentType.Lnurl
       valid: false
       invalidReason: InvalidLnurlPaymentDestinationReason
     }
+
+type MerchantLnurlPaymentDestination = {
+  paymentType: typeof PaymentType.Lnurl
+  valid: true
+  lnurl: string
+  isMerchant: true
+  merchant: Merchant
+}
+
+export type MerchantPaymentDestination = {
+  paymentType: typeof PaymentType.Merchant
+  merchants: Merchant[]
+}
 
 export const InvalidLightningDestinationReason = {
   InvoiceExpired: "InvoiceExpired",
@@ -199,6 +218,7 @@ export type ParsedPaymentDestination =
   | UnknownPaymentDestination
   | NullInputPaymentDestination
   | LnurlPaymentDestination
+  | MerchantPaymentDestination
   | LightningPaymentDestination
   | OnchainPaymentDestination
   | IntraledgerPaymentDestination
@@ -297,12 +317,10 @@ const getPaymentType = ({
   protocol,
   destinationWithoutProtocol,
   rawDestination,
-  network,
 }: {
   protocol: string
   destinationWithoutProtocol: string
   rawDestination: string
-  network: Network
 }): PaymentType => {
   // As far as the client is concerned, lnurl is the same as lightning address
   if (
@@ -337,14 +355,6 @@ const getPaymentType = ({
   }
 
   if (isValidPhoneNumber(destinationWithoutProtocol)) {
-    return PaymentType.Lnurl
-  }
-
-  const merchantLightningAddress = convertMerchantQRToLightningAddress({
-    qrContent: rawDestination,
-    network,
-  })
-  if (merchantLightningAddress) {
     return PaymentType.Lnurl
   }
 
@@ -444,19 +454,35 @@ const getIntraLedgerPayResponse = ({
   }
 }
 
+const getMerchantLnurlPaymentDestination = ({
+  merchants,
+  displayCurrency,
+}: {
+  merchants: Merchant[]
+  displayCurrency?: string
+}): MerchantLnurlPaymentDestination | null => {
+  const merchant = getCurrencyMatchedMerchant({ merchants, displayCurrency })
+
+  if (!merchant) {
+    return null
+  }
+
+  return {
+    paymentType: PaymentType.Lnurl,
+    valid: true,
+    lnurl: merchant.lnurl,
+    isMerchant: true,
+    merchant,
+  }
+}
+
 const getLNURLPayResponse = ({
   lnAddressDomains,
   destination,
-  network,
-  inputSource = "manual",
-  displayCurrency,
   preferLnurlForInternalHandles = false,
 }: {
   lnAddressDomains: string[]
   destination: string
-  network: Network
-  inputSource?: InputSource
-  displayCurrency?: string
   preferLnurlForInternalHandles?: boolean
 }):
   | LnurlPaymentDestination
@@ -471,10 +497,7 @@ const getLNURLPayResponse = ({
     const resolveAsLnurl =
       preferLnurlForInternalHandles && Boolean(username.match(reUsername))
 
-    if (
-      !resolveAsLnurl &&
-      lnAddressDomains.find((lnAddressDomain) => lnAddressDomain === domain)
-    ) {
+    if (!resolveAsLnurl && lnAddressDomains.includes(domain)) {
       return getIntraLedgerPayResponse({
         destinationWithoutProtocol: username,
         lnAddressDomains,
@@ -491,22 +514,6 @@ const getLNURLPayResponse = ({
   }
 
   if (isValidPhoneNumber(trimmed)) {
-    if (inputSource === "qr") {
-      const merchantLightningAddress = convertMerchantQRToLightningAddress({
-        qrContent: trimmed,
-        network,
-        displayCurrency,
-      })
-      if (merchantLightningAddress) {
-        return {
-          valid: true,
-          paymentType: PaymentType.Lnurl,
-          lnurl: merchantLightningAddress,
-          isMerchant: true,
-        }
-      }
-    }
-
     const domain = lnAddressDomains[0]
     return {
       valid: true,
@@ -516,10 +523,7 @@ const getLNURLPayResponse = ({
     }
   }
 
-  if (
-    destination.slice(0, 9) === "lnurlw://" ||
-    destination.slice(0, 9) === "lnurlp://"
-  ) {
+  if (destination.startsWith("lnurlw://") || destination.startsWith("lnurlp://")) {
     return {
       valid: true,
       paymentType: PaymentType.Lnurl,
@@ -536,20 +540,6 @@ const getLNURLPayResponse = ({
       paymentType: PaymentType.Lnurl,
       lnurl,
       isMerchant: false,
-    }
-  }
-
-  const merchantLightningAddress = convertMerchantQRToLightningAddress({
-    qrContent: destination,
-    network,
-    displayCurrency,
-  })
-  if (merchantLightningAddress) {
-    return {
-      valid: true,
-      paymentType: PaymentType.Lnurl,
-      lnurl: merchantLightningAddress,
-      isMerchant: true,
     }
   }
 
@@ -713,21 +703,40 @@ export const parsePaymentDestination = ({
   }
 
   const { protocol, destinationWithoutProtocol } = getProtocolAndData(destination)
-
+  const destinationForParsing =
+    protocol === "lightning" ? destinationWithoutProtocol : destination
+  const merchantContent = destinationForParsing.trim()
   const paymentType = getPaymentType({
     protocol,
     destinationWithoutProtocol,
     rawDestination: destination,
-    network,
   })
+
+  const isMerchantCandidate =
+    paymentType === PaymentType.Intraledger ||
+    paymentType === PaymentType.IntraledgerWithFlag ||
+    paymentType === PaymentType.Unknown ||
+    (inputSource === "qr" && isValidPhoneNumber(destinationWithoutProtocol))
+
+  if (isMerchantCandidate) {
+    const merchants = getMatchingMerchants({ qrContent: merchantContent, network })
+    const merchantResponse = getMerchantLnurlPaymentDestination({
+      merchants,
+      displayCurrency,
+    })
+    if (merchantResponse) {
+      return merchantResponse
+    }
+    if (merchants.length > 1) {
+      return { paymentType: PaymentType.Merchant, merchants }
+    }
+  }
+
   switch (paymentType) {
     case PaymentType.Lnurl:
       return getLNURLPayResponse({
         lnAddressDomains,
-        destination: protocol === "lightning" ? destinationWithoutProtocol : destination,
-        network,
-        inputSource,
-        displayCurrency,
+        destination: destinationForParsing,
         preferLnurlForInternalHandles,
       })
     case PaymentType.Lightning:
