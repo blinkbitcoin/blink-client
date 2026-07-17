@@ -727,7 +727,7 @@ export const parsePaymentDestination = ({
     if (merchantResponse) {
       return merchantResponse
     }
-    if (merchants.length > 1) {
+    if (merchants.length > 0) {
       return { paymentType: PaymentType.Merchant, merchants }
     }
   }

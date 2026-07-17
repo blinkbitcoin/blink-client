@@ -1066,6 +1066,11 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
 })
 
 describe("parsePaymentDestination Merchant QR", () => {
+  const evmRecipient = "0x52908400098527886E0F7030069857D2E4169EE7"
+  const solanaRecipient = "4wBqpZM9xaSheZzJSMawUKKwhdpChKbZ5eu5ky4Vigw"
+  const tronRecipient = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
+  const liquidRecipient = "ex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq0srvws"
+
   it("validates a merchant QR code on mainnet", () => {
     const merchantQR =
       "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC/confirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2"
@@ -1154,6 +1159,95 @@ describe("parsePaymentDestination Merchant QR", () => {
         merchant: expect.objectContaining({ id: "picknpay" }),
       }),
     )
+  })
+
+  it("returns swap merchant choices for a manual EVM recipient", () => {
+    const result = parsePaymentDestination({
+      destination: evmRecipient,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+      displayCurrency: "USD",
+    })
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: expect.arrayContaining([
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+Arbitrum@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDT+Ethereum@swap.blink.sv`,
+          }),
+        ]),
+      }),
+    )
+    if (result.paymentType !== PaymentType.Merchant) {
+      throw Error("Expected merchant choices")
+    }
+    expect(result.merchants).toHaveLength(13)
+  })
+
+  it("returns only compatible swap choices for non-EVM recipients", () => {
+    expect(
+      parsePaymentDestination({
+        destination: solanaRecipient,
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: [
+          expect.objectContaining({
+            lnurl: `${solanaRecipient}+USDT+Solana@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${solanaRecipient}+USDC+Solana@swap.blink.sv`,
+          }),
+        ],
+      }),
+    )
+    expect(
+      parsePaymentDestination({
+        destination: tronRecipient,
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: [
+          expect.objectContaining({ lnurl: `${tronRecipient}+USDT+Tron@swap.blink.sv` }),
+        ],
+      }),
+    )
+    expect(
+      parsePaymentDestination({
+        destination: liquidRecipient,
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: [
+          expect.objectContaining({
+            lnurl: `${liquidRecipient}+LBTC+Liquid@swap.blink.sv`,
+          }),
+        ],
+      }),
+    )
+  })
+
+  it("keeps invalid swap recipients unknown", () => {
+    expect(
+      parsePaymentDestination({
+        destination: "not-a-valid-swap-recipient!",
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+      }),
+    ).toEqual({ paymentType: PaymentType.Unknown, valid: false })
   })
 })
 

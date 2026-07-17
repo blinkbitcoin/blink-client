@@ -1,4 +1,9 @@
-import type { Network } from "./types.ts"
+import {
+  boltzSwapDomains,
+  getBoltzSwapIdentifier,
+  getBoltzSwapMerchants,
+} from "./boltz-swap-merchants"
+import type { Network } from "../types"
 
 export type MerchantCategory = "merchant-payment" | "swap"
 
@@ -14,10 +19,16 @@ export type Merchant = {
 }
 
 type MerchantConfig = Omit<Merchant, "lnurl"> & {
-  identifierRegex: RegExp
+  getIdentifier: (input: string) => string | null
   defaultDomain: string
   domains: { [K in Network]: string }
+  getMerchants?: (identifier: string, network: Network) => Merchant[]
 }
+
+export const getIdentifierFromRegex =
+  (regex: RegExp) =>
+  (input: string): string | null =>
+    input.match(regex)?.groups?.identifier ?? null
 
 const moneyBadgerTermsUrl = "https://www.moneybadger.co.za/deals/terms-and-conditions"
 const moneyBadgerMerchant = {
@@ -33,7 +44,9 @@ export const merchants: MerchantConfig[] = [
     title: "Pick n Pay",
     ...moneyBadgerMerchant,
     displayCurrency: "ZAR",
-    identifierRegex: /(?<identifier>.*za\.co\.electrum\.picknpay.*)/iu,
+    getIdentifier: getIdentifierFromRegex(
+      /(?<identifier>.*za\.co\.electrum\.picknpay.*)/iu,
+    ),
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
@@ -46,7 +59,7 @@ export const merchants: MerchantConfig[] = [
     title: "Ecentric",
     ...moneyBadgerMerchant,
     displayCurrency: "ZAR",
-    identifierRegex: /(?<identifier>.*za\.co\.ecentric.*)/iu,
+    getIdentifier: getIdentifierFromRegex(/(?<identifier>.*za\.co\.ecentric.*)/iu),
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
@@ -59,7 +72,9 @@ export const merchants: MerchantConfig[] = [
     title: "Yoyo",
     ...moneyBadgerMerchant,
     displayCurrency: "ZAR",
-    identifierRegex: /(?<identifier>.*(wigroup\.co|yoyogroup\.co).*)/iu,
+    getIdentifier: getIdentifierFromRegex(
+      /(?<identifier>.*(wigroup\.co|yoyogroup\.co).*)/iu,
+    ),
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
@@ -72,7 +87,9 @@ export const merchants: MerchantConfig[] = [
     title: "Zapper",
     ...moneyBadgerMerchant,
     displayCurrency: "ZAR",
-    identifierRegex: /(?<identifier>.*(zapper\.com|\d+\.zap\.pe).*)/iu,
+    getIdentifier: getIdentifierFromRegex(
+      /(?<identifier>.*(zapper\.com|\d+\.zap\.pe).*)/iu,
+    ),
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
@@ -85,7 +102,7 @@ export const merchants: MerchantConfig[] = [
     title: "Payat",
     ...moneyBadgerMerchant,
     displayCurrency: "ZAR",
-    identifierRegex: /(?<identifier>.*payat\.io.*)/iu,
+    getIdentifier: getIdentifierFromRegex(/(?<identifier>.*payat\.io.*)/iu),
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
@@ -98,7 +115,7 @@ export const merchants: MerchantConfig[] = [
     title: "Paynow Netcash",
     ...moneyBadgerMerchant,
     displayCurrency: "ZAR",
-    identifierRegex: /(?<identifier>.*paynow\.netcash\.co\.za.*)/iu,
+    getIdentifier: getIdentifierFromRegex(/(?<identifier>.*paynow\.netcash\.co\.za.*)/iu),
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
@@ -111,7 +128,7 @@ export const merchants: MerchantConfig[] = [
     title: "Paynow Sagepay",
     ...moneyBadgerMerchant,
     displayCurrency: "ZAR",
-    identifierRegex: /(?<identifier>.*paynow\.sagepay\.co\.za.*)/iu,
+    getIdentifier: getIdentifierFromRegex(/(?<identifier>.*paynow\.sagepay\.co\.za.*)/iu),
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
@@ -124,7 +141,7 @@ export const merchants: MerchantConfig[] = [
     title: "Standard Bank Scantopay",
     ...moneyBadgerMerchant,
     displayCurrency: "ZAR",
-    identifierRegex: /(?<identifier>SK-\d{1,}-\d{23})/iu,
+    getIdentifier: getIdentifierFromRegex(/(?<identifier>SK-\d{1,}-\d{23})/iu),
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
@@ -137,7 +154,9 @@ export const merchants: MerchantConfig[] = [
     title: "Transaction Junction",
     ...moneyBadgerMerchant,
     displayCurrency: "ZAR",
-    identifierRegex: /(?<identifier>.*transactionjunction\.co\.za.*)/iu,
+    getIdentifier: getIdentifierFromRegex(
+      /(?<identifier>.*transactionjunction\.co\.za.*)/iu,
+    ),
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
@@ -150,7 +169,7 @@ export const merchants: MerchantConfig[] = [
     title: "Servest Parking",
     ...moneyBadgerMerchant,
     displayCurrency: "ZAR",
-    identifierRegex: /(?<identifier>CRSTPC-\d+-\d+-\d+-\d+-\d+)/iu,
+    getIdentifier: getIdentifierFromRegex(/(?<identifier>CRSTPC-\d+-\d+-\d+-\d+-\d+)/iu),
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
@@ -163,7 +182,7 @@ export const merchants: MerchantConfig[] = [
     title: "Payat",
     ...moneyBadgerMerchant,
     displayCurrency: "ZAR",
-    identifierRegex: /(?<identifier>.{2}\/.{4}\/.{20})/iu,
+    getIdentifier: getIdentifierFromRegex(/(?<identifier>.{2}\/.{4}\/.{20})/iu),
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
@@ -176,7 +195,7 @@ export const merchants: MerchantConfig[] = [
     title: "Scantopay Url",
     ...moneyBadgerMerchant,
     displayCurrency: "ZAR",
-    identifierRegex: /(?<identifier>.*(scantopay\.io).*)/iu,
+    getIdentifier: getIdentifierFromRegex(/(?<identifier>.*(scantopay\.io).*)/iu),
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
@@ -189,7 +208,7 @@ export const merchants: MerchantConfig[] = [
     title: "Scantopay 10 Digits",
     ...moneyBadgerMerchant,
     displayCurrency: "ZAR",
-    identifierRegex: /^(?<identifier>\d{10})$/iu,
+    getIdentifier: getIdentifierFromRegex(/^(?<identifier>\d{10})$/iu),
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
@@ -202,13 +221,25 @@ export const merchants: MerchantConfig[] = [
     title: "Snapscan",
     ...moneyBadgerMerchant,
     displayCurrency: "ZAR",
-    identifierRegex: /(?<identifier>.*(snapscan).*)/iu,
+    getIdentifier: getIdentifierFromRegex(/(?<identifier>.*(snapscan).*)/iu),
     defaultDomain: "cryptoqr.net",
     domains: {
       mainnet: "cryptoqr.net",
       signet: "staging.cryptoqr.net",
       regtest: "staging.cryptoqr.net",
     },
+  },
+  {
+    id: "blink-boltz-swap",
+    category: "swap",
+    title: "Boltz Swap",
+    description: "Swap sats with Boltz",
+    companyName: "Boltz",
+    termsUrl: "https://boltz.exchange/terms",
+    getIdentifier: getBoltzSwapIdentifier,
+    defaultDomain: boltzSwapDomains.mainnet,
+    domains: boltzSwapDomains,
+    getMerchants: getBoltzSwapMerchants,
   },
 ]
 
@@ -232,13 +263,17 @@ export const getMatchingMerchants = ({
   }
 
   return merchants.reduce<Merchant[]>((matchedMerchants, merchant) => {
-    const match = qrContent.match(merchant.identifierRegex)
-    const identifier = match?.groups?.identifier
+    const identifier = merchant.getIdentifier(qrContent)
     if (!identifier) {
       return matchedMerchants
     }
 
-    const domain = merchant.domains[network] || merchant.defaultDomain
+    if (merchant.getMerchants) {
+      matchedMerchants.push(...merchant.getMerchants(identifier, network))
+      return matchedMerchants
+    }
+
+    const domain = merchant.domains[network] ?? merchant.defaultDomain
     matchedMerchants.push({
       id: merchant.id,
       lnurl: `${strictUriEncode(identifier)}@${domain}`,
@@ -261,7 +296,7 @@ export const getCurrencyMatchedMerchant = ({
   displayCurrency?: string
 }): Merchant | null => {
   if (matchingMerchants.length === 1) {
-    return matchingMerchants[0]
+    return matchingMerchants[0].category === "swap" ? null : matchingMerchants[0]
   }
 
   const normalizedCurrency = displayCurrency?.trim().toUpperCase()
@@ -285,8 +320,9 @@ export const convertMerchantQRToLightningAddress = ({
   network: Network
   displayCurrency?: string
 }): string | null => {
+  const matchingMerchants = getMatchingMerchants({ qrContent, network })
   const merchant = getCurrencyMatchedMerchant({
-    merchants: getMatchingMerchants({ qrContent, network }),
+    merchants: matchingMerchants,
     displayCurrency,
   })
 
