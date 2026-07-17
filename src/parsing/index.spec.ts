@@ -1394,6 +1394,22 @@ describe("parsePaymentDestination QR Input with Merchant Priority", () => {
     })
   })
 
+  it("keeps a QR Lightning Address on a merchant domain as LNURL", () => {
+    expect(
+      parsePaymentDestination({
+        destination: "alice@snapscan.com",
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+        inputSource: "qr",
+      }),
+    ).toEqual({
+      paymentType: PaymentType.Lnurl,
+      valid: true,
+      lnurl: "alice@snapscan.com",
+      isMerchant: false,
+    })
+  })
+
   it("normalizes a lightning-prefixed manual merchant URL before matching", () => {
     expect(
       parsePaymentDestination({

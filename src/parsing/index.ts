@@ -712,12 +712,13 @@ export const parsePaymentDestination = ({
     rawDestination: destination,
   })
 
-  if (
-    inputSource === "qr" ||
+  const isMerchantCandidate =
     paymentType === PaymentType.Intraledger ||
     paymentType === PaymentType.IntraledgerWithFlag ||
-    paymentType === PaymentType.Unknown
-  ) {
+    paymentType === PaymentType.Unknown ||
+    (inputSource === "qr" && isValidPhoneNumber(destinationWithoutProtocol))
+
+  if (isMerchantCandidate) {
     const merchants = getMatchingMerchants({ qrContent: merchantContent, network })
     const merchantResponse = getMerchantLnurlPaymentDestination({
       merchants,
