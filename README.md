@@ -39,6 +39,9 @@ Each merchant includes its ID, Lightning address, category, display metadata, an
 optional display currency. `category` is metadata only; consumers make all selection,
 filtering, regional eligibility, and policy decisions.
 
+`PaymentType.Merchant` requires consumer selection before payment and does not include a
+`valid` field. Branch on `paymentType` before relying on `valid` or initiating payment.
+
 ## Test
 
 Test with Jest framework:
