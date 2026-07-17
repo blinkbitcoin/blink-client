@@ -117,6 +117,11 @@ export type LnurlPaymentDestination =
       lnurl: string
       isMerchant: false
     }
+  | {
+      paymentType: typeof PaymentType.Lnurl
+      valid: false
+      invalidReason: InvalidLnurlPaymentDestinationReason
+    }
 
 type MerchantLnurlPaymentDestination = {
   paymentType: typeof PaymentType.Lnurl
@@ -126,16 +131,10 @@ type MerchantLnurlPaymentDestination = {
   merchant: Merchant
 }
 
-export type MerchantPaymentDestination =
-  | {
-      paymentType: typeof PaymentType.Merchant
-      merchants: Merchant[]
-    }
-  | {
-      paymentType: typeof PaymentType.Lnurl
-      valid: false
-      invalidReason: InvalidLnurlPaymentDestinationReason
-    }
+export type MerchantPaymentDestination = {
+  paymentType: typeof PaymentType.Merchant
+  merchants: Merchant[]
+}
 
 export const InvalidLightningDestinationReason = {
   InvoiceExpired: "InvoiceExpired",

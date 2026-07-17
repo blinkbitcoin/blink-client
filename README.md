@@ -23,10 +23,10 @@ const { valid, paymentType, amount } = parsePaymentDestination({
 })
 ```
 
-When a QR code matches one merchant payment integration, the result remains a valid
-`PaymentType.Lnurl` and includes `isMerchant: true` plus a `merchant` object. When a
-QR code matches multiple integrations that cannot be uniquely selected by
-`displayCurrency`, the result is:
+When a QR code or non-phone manual input matches one merchant payment integration, the
+result remains a valid `PaymentType.Lnurl` and includes `isMerchant: true` plus a
+`merchant` object. When the input matches multiple integrations that cannot be uniquely
+selected by `displayCurrency`, the result is:
 
 ```ts
 {

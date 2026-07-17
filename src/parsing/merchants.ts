@@ -22,7 +22,7 @@ type MerchantConfig = Omit<Merchant, "lnurl"> & {
 const moneyBadgerTermsUrl = "https://www.moneybadger.co.za/deals/terms-and-conditions"
 const moneyBadgerMerchant = {
   category: "merchant-payment",
-  description: "",
+  description: "Money Badger merchant",
   companyName: "Money Badger",
   termsUrl: moneyBadgerTermsUrl,
 } satisfies Pick<Merchant, "category" | "description" | "companyName" | "termsUrl">
