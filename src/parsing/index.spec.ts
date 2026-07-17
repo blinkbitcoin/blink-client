@@ -103,6 +103,7 @@ describe("parsePaymentDestination validations", () => {
         isMerchant: false,
       }),
     )
+    expect(result).not.toHaveProperty("merchant")
   })
 
   it("validates an lnurlw destination", () => {
@@ -1082,6 +1083,11 @@ describe("parsePaymentDestination Merchant QR", () => {
         lnurl:
           "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@cryptoqr.net",
         isMerchant: true,
+        merchant: expect.objectContaining({
+          id: "picknpay",
+          category: "merchant-payment",
+          companyName: "Money Badger",
+        }),
       }),
     )
   })
@@ -1101,6 +1107,7 @@ describe("parsePaymentDestination Merchant QR", () => {
         valid: true,
         lnurl: "https%3A%2F%2Fpos.snapscan.io%2Fqr%2FSTB2ACC8@cryptoqr.net",
         isMerchant: true,
+        merchant: expect.objectContaining({ id: "snapscan" }),
       }),
     )
   })
@@ -1122,6 +1129,29 @@ describe("parsePaymentDestination Merchant QR", () => {
         lnurl:
           "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@staging.cryptoqr.net",
         isMerchant: true,
+        merchant: expect.objectContaining({ id: "picknpay" }),
+      }),
+    )
+  })
+
+  it("validates a merchant QR code on regtest", () => {
+    const merchantQR =
+      "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC/confirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2"
+
+    expect(
+      parsePaymentDestination({
+        destination: merchantQR,
+        network: "regtest",
+        lnAddressDomains: ["blink.sv"],
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl:
+          "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC%2Fconfirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2@staging.cryptoqr.net",
+        isMerchant: true,
+        merchant: expect.objectContaining({ id: "picknpay" }),
       }),
     )
   })
@@ -1142,6 +1172,7 @@ describe("parsePaymentDestination - Numeric Lightning Addresses", () => {
         isMerchant: false,
       }),
     )
+    expect(result).not.toHaveProperty("merchant")
   })
 
   it("validates an external lightning address with phone number username (with +)", () => {
@@ -1225,7 +1256,30 @@ describe("parsePaymentDestination - Numeric Lightning Addresses", () => {
 
 describe("parsePaymentDestination QR Input with Merchant Priority", () => {
   const phoneNumber = "+27123456789"
-  const mockMerchantLnurl = "merchant-identifier@cryptoqr.net"
+  const mockMerchant = {
+    id: "test-merchant",
+    lnurl: "merchant-identifier@cryptoqr.net",
+    category: "merchant-payment" as const,
+    title: "Test Merchant",
+    description: "",
+    companyName: "Money Badger",
+    termsUrl: "https://www.moneybadger.co.za/deals/terms-and-conditions",
+  }
+
+  const currencyMerchants = [
+    {
+      ...mockMerchant,
+      id: "cop-merchant",
+      lnurl: "merchant-cop@cryptoqr.net",
+      displayCurrency: "COP",
+    },
+    {
+      ...mockMerchant,
+      id: "zar-merchant",
+      lnurl: "merchant-zar@cryptoqr.net",
+      displayCurrency: "ZAR",
+    },
+  ]
 
   afterEach(() => {
     jest.restoreAllMocks()
@@ -1233,8 +1287,8 @@ describe("parsePaymentDestination QR Input with Merchant Priority", () => {
 
   it("prioritizes merchant when QR input matches both phone and merchant pattern", () => {
     const merchantSpy = jest
-      .spyOn(merchants, "convertMerchantQRToLightningAddress")
-      .mockReturnValue(mockMerchantLnurl)
+      .spyOn(merchants, "getMatchingMerchants")
+      .mockReturnValue([mockMerchant])
 
     const paymentDestination = parsePaymentDestination({
       destination: phoneNumber,
@@ -1251,16 +1305,15 @@ describe("parsePaymentDestination QR Input with Merchant Priority", () => {
       expect.objectContaining({
         paymentType: PaymentType.Lnurl,
         valid: true,
-        lnurl: mockMerchantLnurl,
+        lnurl: mockMerchant.lnurl,
         isMerchant: true,
+        merchant: mockMerchant,
       }),
     )
   })
 
   it("returns phone LNURL when QR input is phone without merchant match", () => {
-    const merchantSpy = jest
-      .spyOn(merchants, "convertMerchantQRToLightningAddress")
-      .mockReturnValue(null)
+    const merchantSpy = jest.spyOn(merchants, "getMatchingMerchants").mockReturnValue([])
 
     const paymentDestination = parsePaymentDestination({
       destination: phoneNumber,
@@ -1281,10 +1334,11 @@ describe("parsePaymentDestination QR Input with Merchant Priority", () => {
         isMerchant: false,
       }),
     )
+    expect(paymentDestination).not.toHaveProperty("merchant")
   })
 
   it("returns phone LNURL when manual input is phone (does not check merchant)", () => {
-    const merchantSpy = jest.spyOn(merchants, "convertMerchantQRToLightningAddress")
+    const merchantSpy = jest.spyOn(merchants, "getMatchingMerchants")
 
     const paymentDestination = parsePaymentDestination({
       destination: phoneNumber,
@@ -1305,7 +1359,7 @@ describe("parsePaymentDestination QR Input with Merchant Priority", () => {
   })
 
   it("returns phone LNURL when inputSource is undefined (defaults to manual)", () => {
-    const merchantSpy = jest.spyOn(merchants, "convertMerchantQRToLightningAddress")
+    const merchantSpy = jest.spyOn(merchants, "getMatchingMerchants")
 
     const paymentDestination = parsePaymentDestination({
       destination: phoneNumber,
@@ -1322,5 +1376,103 @@ describe("parsePaymentDestination QR Input with Merchant Priority", () => {
         isMerchant: false,
       }),
     )
+  })
+
+  it("returns all matching merchants when a QR match is ambiguous", () => {
+    jest.spyOn(merchants, "getMatchingMerchants").mockReturnValue(currencyMerchants)
+
+    expect(
+      parsePaymentDestination({
+        destination: "ambiguous-merchant-qr",
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+        inputSource: "qr",
+      }),
+    ).toEqual({ paymentType: PaymentType.Merchant, merchants: currencyMerchants })
+  })
+
+  it("uses displayCurrency when exactly one QR merchant matches it", () => {
+    jest.spyOn(merchants, "getMatchingMerchants").mockReturnValue(currencyMerchants)
+
+    expect(
+      parsePaymentDestination({
+        destination: "ambiguous-merchant-qr",
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+        inputSource: "qr",
+        displayCurrency: " zar ",
+      }),
+    ).toEqual({
+      paymentType: PaymentType.Lnurl,
+      valid: true,
+      lnurl: "merchant-zar@cryptoqr.net",
+      isMerchant: true,
+      merchant: currencyMerchants[1],
+    })
+  })
+
+  it("keeps QR merchants ambiguous when no currency matches", () => {
+    jest.spyOn(merchants, "getMatchingMerchants").mockReturnValue(currencyMerchants)
+
+    expect(
+      parsePaymentDestination({
+        destination: "ambiguous-merchant-qr",
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+        inputSource: "qr",
+        displayCurrency: "EUR",
+      }),
+    ).toEqual({ paymentType: PaymentType.Merchant, merchants: currencyMerchants })
+  })
+
+  it("keeps same-currency QR merchants ambiguous", () => {
+    const sameCurrencyMerchants = currencyMerchants.map((merchant) => ({
+      ...merchant,
+      displayCurrency: "ZAR",
+    }))
+    jest.spyOn(merchants, "getMatchingMerchants").mockReturnValue(sameCurrencyMerchants)
+
+    expect(
+      parsePaymentDestination({
+        destination: "ambiguous-merchant-qr",
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+        inputSource: "qr",
+        displayCurrency: "ZAR",
+      }),
+    ).toEqual({ paymentType: PaymentType.Merchant, merchants: sameCurrencyMerchants })
+  })
+
+  it("returns all matching merchants for ambiguous manual input", () => {
+    jest.spyOn(merchants, "getMatchingMerchants").mockReturnValue(currencyMerchants)
+
+    expect(
+      parsePaymentDestination({
+        destination: "ambiguous-merchant-input",
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+        inputSource: "manual",
+      }),
+    ).toEqual({ paymentType: PaymentType.Merchant, merchants: currencyMerchants })
+  })
+
+  it("uses displayCurrency to resolve ambiguous manual input", () => {
+    jest.spyOn(merchants, "getMatchingMerchants").mockReturnValue(currencyMerchants)
+
+    expect(
+      parsePaymentDestination({
+        destination: "ambiguous-merchant-input",
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+        inputSource: "manual",
+        displayCurrency: "ZAR",
+      }),
+    ).toEqual({
+      paymentType: PaymentType.Lnurl,
+      valid: true,
+      lnurl: "merchant-zar@cryptoqr.net",
+      isMerchant: true,
+      merchant: currencyMerchants[1],
+    })
   })
 })

@@ -1,6 +1,7 @@
 import type { Network } from "./types"
 import {
   convertMerchantQRToLightningAddress,
+  getMatchingMerchants,
   merchants,
   strictUriEncode,
 } from "./merchants"
@@ -247,6 +248,37 @@ describe("convertMerchantQRToLightningAddress", () => {
   })
 })
 
+describe("getMatchingMerchants", () => {
+  test("returns public metadata and a network-specific lnurl", () => {
+    expect(
+      getMatchingMerchants({
+        qrContent: "CRSTPC-12-345-6789-10-11",
+        network: "signet",
+      }),
+    ).toEqual([
+      {
+        id: "servest-parking",
+        lnurl: "CRSTPC-12-345-6789-10-11@staging.cryptoqr.net",
+        category: "merchant-payment",
+        title: "Servest Parking",
+        description: "",
+        companyName: "Money Badger",
+        termsUrl: "https://www.moneybadger.co.za/deals/terms-and-conditions",
+        displayCurrency: "ZAR",
+      },
+    ])
+  })
+
+  test("returns all matches in configuration order", () => {
+    const qrContent =
+      "00020129530023za.co.electrum.picknpay.za.co.ecentric0122RD2HAK3KTI53EC/confirm"
+
+    expect(
+      getMatchingMerchants({ qrContent, network: "mainnet" }).map(({ id }) => id),
+    ).toEqual(["picknpay", "ecentric"])
+  })
+})
+
 describe("convertMerchantQRToLightningAddress with displayCurrency", () => {
   const originalMerchants = [...merchants]
 
@@ -255,6 +287,11 @@ describe("convertMerchantQRToLightningAddress with displayCurrency", () => {
     merchants.push(
       {
         id: "test-usd",
+        category: "merchant-payment",
+        title: "Test Usd",
+        description: "",
+        companyName: "Money Badger",
+        termsUrl: "https://www.moneybadger.co.za/deals/terms-and-conditions",
         identifierRegex: /(?<identifier>.*test-payment.*)/iu,
         defaultDomain: "usd-merchant.com",
         domains: {
@@ -266,6 +303,11 @@ describe("convertMerchantQRToLightningAddress with displayCurrency", () => {
       },
       {
         id: "test-zar",
+        category: "merchant-payment",
+        title: "Test Zar",
+        description: "",
+        companyName: "Money Badger",
+        termsUrl: "https://www.moneybadger.co.za/deals/terms-and-conditions",
         identifierRegex: /(?<identifier>.*test-payment.*)/iu,
         defaultDomain: "zar-merchant.com",
         domains: {
@@ -336,6 +378,11 @@ describe("convertMerchantQRToLightningAddress with displayCurrency", () => {
     merchants.length = 0
     merchants.push({
       id: "test-single",
+      category: "merchant-payment",
+      title: "Test Single",
+      description: "",
+      companyName: "Money Badger",
+      termsUrl: "https://www.moneybadger.co.za/deals/terms-and-conditions",
       identifierRegex: /(?<identifier>.*test-payment.*)/iu,
       defaultDomain: "single-merchant.com",
       domains: {
@@ -352,6 +399,33 @@ describe("convertMerchantQRToLightningAddress with displayCurrency", () => {
     })
 
     expect(result).toBe("test-payment-qr@single-merchant.com")
+  })
+
+  test("returns null when multiple merchants match the requested currency", () => {
+    merchants.push({
+      id: "test-zar-duplicate",
+      category: "merchant-payment",
+      title: "Test Zar Duplicate",
+      description: "",
+      companyName: "Money Badger",
+      termsUrl: "https://www.moneybadger.co.za/deals/terms-and-conditions",
+      identifierRegex: /(?<identifier>.*test-payment.*)/iu,
+      defaultDomain: "zar-duplicate-merchant.com",
+      domains: {
+        mainnet: "zar-duplicate-merchant.com",
+        signet: "staging.zar-duplicate-merchant.com",
+        regtest: "staging.zar-duplicate-merchant.com",
+      },
+      displayCurrency: "ZAR",
+    })
+
+    expect(
+      convertMerchantQRToLightningAddress({
+        qrContent: "test-payment-qr",
+        network: "mainnet",
+        displayCurrency: "ZAR",
+      }),
+    ).toBeNull()
   })
 })
 
