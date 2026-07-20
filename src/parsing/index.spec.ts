@@ -1203,6 +1203,27 @@ describe("parsePaymentDestination Merchant QR", () => {
     expect(result.merchants).toHaveLength(10)
   })
 
+  it("returns swap merchant choices for a lowercase EVM recipient", () => {
+    const lowercaseEvmRecipient = "0xde709f2102306220921060314715629080e2fb77"
+
+    expect(
+      parsePaymentDestination({
+        destination: lowercaseEvmRecipient,
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: expect.arrayContaining([
+          expect.objectContaining({
+            lnurl: `${lowercaseEvmRecipient}+USDT+Ethereum@swap.blink.sv`,
+          }),
+        ]),
+      }),
+    )
+  })
+
   it("returns swap merchant choices filtered by asset", () => {
     const result = parsePaymentDestination({
       destination: `${evmRecipient}+USDC`,
@@ -1292,13 +1313,21 @@ describe("parsePaymentDestination Merchant QR", () => {
   })
 
   it("keeps invalid swap recipients unknown", () => {
-    expect(
-      parsePaymentDestination({
-        destination: "not-a-valid-swap-recipient!",
-        network: "mainnet",
-        lnAddressDomains: ["blink.sv"],
-      }),
-    ).toEqual({ paymentType: PaymentType.Unknown, valid: false })
+    const invalidSwapRecipients = [
+      "not-a-valid-swap-recipient!",
+      "0x52908400098527886E0F7030069857D2E4169Ee7",
+      "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwc",
+    ]
+
+    for (const destination of invalidSwapRecipients) {
+      expect(
+        parsePaymentDestination({
+          destination,
+          network: "mainnet",
+          lnAddressDomains: ["blink.sv"],
+        }),
+      ).toEqual({ paymentType: PaymentType.Unknown, valid: false })
+    }
   })
 })
 

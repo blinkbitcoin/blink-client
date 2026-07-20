@@ -4,6 +4,10 @@ import { keccak_256 as keccak256 } from "@noble/hashes/sha3"
 
 export type SwapAddressFamily = "evm" | "solana" | "tron"
 
+export const isSwapRecipientCandidate = (input: string): boolean => {
+  return /^0x[0-9a-f]{40}$/iu.test(input) || /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(input)
+}
+
 const validateEvmRecipient = (input: string): string | null => {
   if (!/^0x[0-9a-f]{40}$/iu.test(input)) {
     return null
