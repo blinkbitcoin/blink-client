@@ -1203,6 +1203,58 @@ describe("parsePaymentDestination Merchant QR", () => {
     expect(result.merchants).toHaveLength(10)
   })
 
+  it("returns swap merchant choices filtered by asset", () => {
+    const result = parsePaymentDestination({
+      destination: `${evmRecipient}+USDC`,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: [
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+Ethereum@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+Base@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+Arbitrum@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+PolygonPoS@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+AvalancheCChain@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+Monad@swap.blink.sv`,
+          }),
+        ],
+      }),
+    )
+  })
+
+  it("returns one merchant choice for one filtered swap route", () => {
+    const result = parsePaymentDestination({
+      destination: `${evmRecipient}+USDC+Arbitrum`,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+
+    expect(result).toEqual({
+      paymentType: PaymentType.Merchant,
+      merchants: [
+        expect.objectContaining({
+          id: "blink-boltz-usdc-arbitrum",
+          lnurl: `${evmRecipient}+USDC+Arbitrum@swap.blink.sv`,
+        }),
+      ],
+    })
+  })
+
   it("returns only compatible stablecoin swap choices for non-EVM recipients", () => {
     expect(
       parsePaymentDestination({

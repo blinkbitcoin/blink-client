@@ -10,6 +10,11 @@ type SwapCapability = {
   addressFamily: SwapAddressFamily
 }
 
+type BoltzSwapInput = {
+  recipient: string
+  capabilities: SwapCapability[]
+}
+
 const boltzMerchantDetails = {
   category: "swap",
   companyName: "Boltz",
@@ -116,29 +121,97 @@ export const boltzSwapDomains = {
   regtest: "swap.staging.blink.sv",
 } satisfies { [K in Network]: string }
 
-export const getBoltzSwapIdentifier = (input: string): string | null => {
-  return getSwapAddressFamily(input) ? input : null
+const normalizeSwapFilter = (value: string): string => value.trim().toUpperCase()
+
+const capabilityMatchesFilters = ({
+  capability,
+  normalizedAsset,
+  normalizedNetwork,
+}: {
+  capability: SwapCapability
+  normalizedAsset?: string
+  normalizedNetwork?: string
+}): boolean => {
+  if (normalizedAsset && normalizeSwapFilter(capability.asset) !== normalizedAsset) {
+    return false
+  }
+
+  if (!normalizedNetwork) {
+    return true
+  }
+
+  return [
+    capability.lightningAddressNetwork,
+    capability.displayNetwork,
+    capability.networkSlug,
+  ]
+    .map(normalizeSwapFilter)
+    .includes(normalizedNetwork)
 }
 
-export const getBoltzSwapMerchants = (
-  recipient: string,
-  network: Network,
-): Merchant[] => {
+const parseBoltzSwapInput = (input: string): BoltzSwapInput | null => {
+  const segments = input.split("+")
+  if (segments.length > 3) {
+    return null
+  }
+
+  const [recipient, asset, lightningAddressNetwork] = segments
+  if (!recipient) {
+    return null
+  }
+
+  if (asset === "" || lightningAddressNetwork === "") {
+    return null
+  }
+
+  if (lightningAddressNetwork && !asset) {
+    return null
+  }
+
   const addressFamily = getSwapAddressFamily(recipient)
   if (!addressFamily) {
+    return null
+  }
+
+  const normalizedAsset = asset ? normalizeSwapFilter(asset) : undefined
+  const normalizedNetwork = lightningAddressNetwork
+    ? normalizeSwapFilter(lightningAddressNetwork)
+    : undefined
+  const capabilities = swapCapabilities.filter(
+    (capability) =>
+      capability.addressFamily === addressFamily &&
+      capabilityMatchesFilters({ capability, normalizedAsset, normalizedNetwork }),
+  )
+  if (capabilities.length === 0) {
+    return null
+  }
+
+  return {
+    recipient,
+    capabilities,
+  }
+}
+
+export const getBoltzSwapIdentifier = (input: string): string | null => {
+  return parseBoltzSwapInput(input) ? input : null
+}
+
+export const getBoltzSwapMerchants = (input: string, network: Network): Merchant[] => {
+  const parsedInput = parseBoltzSwapInput(input)
+  if (!parsedInput) {
     return []
   }
 
   const domain = boltzSwapDomains[network]
-  return swapCapabilities
-    .filter((capability) => capability.addressFamily === addressFamily)
-    .map(({ asset, displayNetwork, lightningAddressNetwork, networkSlug }) => ({
+  return parsedInput.capabilities.map(
+    ({ asset, displayNetwork, lightningAddressNetwork, networkSlug }) => ({
       id: `blink-boltz-${asset.toLowerCase()}-${networkSlug}`,
-      lnurl: `${recipient}+${asset}+${lightningAddressNetwork}@${domain}`,
+      lnurl: `${parsedInput.recipient}+${asset}+${lightningAddressNetwork}@${domain}`,
       ...boltzMerchantDetails,
       title: `${asset} ${displayNetwork}`,
       description: `Swap sats to ${asset} on ${displayNetwork}`,
-    }))
+    }),
+  )
 }
 
 export const boltzSwapMerchant: MerchantConfig = {

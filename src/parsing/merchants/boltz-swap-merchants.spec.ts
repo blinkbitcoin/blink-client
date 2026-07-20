@@ -67,6 +67,81 @@ describe("Boltz swap merchants", () => {
     ).toEqual([`${tronRecipient}+USDT+Tron@swap.blink.sv`])
   })
 
+  test("filters swap capabilities by configured asset", () => {
+    expect(
+      getMatchingMerchants({
+        qrContent: `${evmRecipient}+USDC`,
+        network: "mainnet",
+      }).map(({ id }) => id),
+    ).toEqual([
+      "blink-boltz-usdc-ethereum",
+      "blink-boltz-usdc-base",
+      "blink-boltz-usdc-arbitrum",
+      "blink-boltz-usdc-polygon-pos",
+      "blink-boltz-usdc-avalanche-c-chain",
+      "blink-boltz-usdc-monad",
+    ])
+    expect(
+      getMatchingMerchants({
+        qrContent: `${evmRecipient}+usdt`,
+        network: "mainnet",
+      }).map(({ id }) => id),
+    ).toEqual([
+      "blink-boltz-usdt-ethereum",
+      "blink-boltz-usdt-polygon-pos",
+      "blink-boltz-usdt-arbitrum",
+      "blink-boltz-usdt-plasma",
+    ])
+  })
+
+  test.each([
+    [`${evmRecipient}+USDT+Ethereum`, "blink-boltz-usdt-ethereum"],
+    [`${evmRecipient}+USDT+PolygonPoS`, "blink-boltz-usdt-polygon-pos"],
+    [`${evmRecipient}+USDT+Arbitrum`, "blink-boltz-usdt-arbitrum"],
+    [`${evmRecipient}+USDT+Plasma`, "blink-boltz-usdt-plasma"],
+    [`${evmRecipient}+USDC+Ethereum`, "blink-boltz-usdc-ethereum"],
+    [`${evmRecipient}+USDC+Base`, "blink-boltz-usdc-base"],
+    [`${evmRecipient}+USDC+Arbitrum`, "blink-boltz-usdc-arbitrum"],
+    [`${evmRecipient}+USDC+PolygonPoS`, "blink-boltz-usdc-polygon-pos"],
+    [`${evmRecipient}+USDC+AvalancheCChain`, "blink-boltz-usdc-avalanche-c-chain"],
+    [`${evmRecipient}+USDC+Monad`, "blink-boltz-usdc-monad"],
+    [`${solanaRecipient}+USDT+Solana`, "blink-boltz-usdt-solana"],
+    [`${solanaRecipient}+USDC+Solana`, "blink-boltz-usdc-solana"],
+    [`${tronRecipient}+USDT+Tron`, "blink-boltz-usdt-tron"],
+  ])("filters swap capabilities by configured asset and network: %s", (qrContent, id) => {
+    expect(getMatchingMerchants({ qrContent, network: "mainnet" })).toEqual([
+      expect.objectContaining({ id }),
+    ])
+  })
+
+  test.each([
+    `${evmRecipient}+USDC+Arbitrum`,
+    `${evmRecipient}+USDC+arbitrum`,
+    `${evmRecipient}+usdc+Arbitrum`,
+  ])("builds canonical swap lnurls for filtered route %s", (qrContent) => {
+    expect(getMatchingMerchants({ qrContent, network: "mainnet" })).toEqual([
+      expect.objectContaining({
+        lnurl: `${evmRecipient}+USDC+Arbitrum@swap.blink.sv`,
+        title: "USDC Arbitrum",
+      }),
+    ])
+  })
+
+  test.each([
+    `${tronRecipient}+USDC`,
+    `${tronRecipient}+USDC+Tron`,
+    `${solanaRecipient}+USDT+Ethereum`,
+    `${evmRecipient}+USDT+Base`,
+    `${evmRecipient}+BTC`,
+    `${evmRecipient}+USDC+UnknownNetwork`,
+    `${evmRecipient}+USDC+Arbitrum+Extra`,
+    `${evmRecipient}+`,
+    `${evmRecipient}++Arbitrum`,
+    `not-a-valid-swap-recipient+USDC`,
+  ])("does not return unsupported filtered swap route %s", (qrContent) => {
+    expect(getMatchingMerchants({ qrContent, network: "mainnet" })).toEqual([])
+  })
+
   test("uses staging swap domains on signet and regtest", () => {
     expect(getMatchingMerchants({ qrContent: tronRecipient, network: "signet" })).toEqual(
       [
