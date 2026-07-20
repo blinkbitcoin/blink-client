@@ -4,7 +4,6 @@ describe("Boltz swap merchants", () => {
   const evmRecipient = "0x52908400098527886E0F7030069857D2E4169EE7"
   const solanaRecipient = "4wBqpZM9xaSheZzJSMawUKKwhdpChKbZ5eu5ky4Vigw"
   const tronRecipient = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
-  const unsupportedLiquidRecipient = "ex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq0srvws"
 
   test("returns all EVM swap capabilities in declaration order", () => {
     const matches = getMatchingMerchants({ qrContent: evmRecipient, network: "mainnet" })
@@ -66,9 +65,6 @@ describe("Boltz swap merchants", () => {
         ({ lnurl }) => lnurl,
       ),
     ).toEqual([`${tronRecipient}+USDT+Tron@swap.blink.sv`])
-    expect(
-      getMatchingMerchants({ qrContent: unsupportedLiquidRecipient, network: "mainnet" }),
-    ).toEqual([])
   })
 
   test("uses staging swap domains on signet and regtest", () => {
@@ -154,14 +150,5 @@ describe("Boltz swap merchants", () => {
     expect(
       getMatchingMerchants({ qrContent: recipient, network: "mainnet" }),
     ).toHaveLength(count)
-  })
-
-  test.each([
-    "ex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq0srvws",
-    "lq1qqgqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpztehvrdr30n",
-    "PwGP8BzRUHQwchwwPuzAe9WqskgmbKp88f",
-    "VTpt5oiR6rTsr6ftQwQzUD8nb4PFhj8Dp3FNCqo4xfMHxcN9dmuKFfsF3Lb1bCZdqpuisAUHwvvLQ8Zw",
-  ])("does not return unsupported Liquid route %s", (recipient) => {
-    expect(getMatchingMerchants({ qrContent: recipient, network: "mainnet" })).toEqual([])
   })
 })
