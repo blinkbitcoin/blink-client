@@ -1085,7 +1085,6 @@ describe("parsePaymentDestination Merchant QR", () => {
   const evmRecipient = "0x52908400098527886E0F7030069857D2E4169EE7"
   const solanaRecipient = "4wBqpZM9xaSheZzJSMawUKKwhdpChKbZ5eu5ky4Vigw"
   const tronRecipient = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
-  const liquidRecipient = "ex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq0srvws"
 
   it("validates a merchant QR code on mainnet", () => {
     const merchantQR =
@@ -1201,10 +1200,10 @@ describe("parsePaymentDestination Merchant QR", () => {
     if (result.paymentType !== PaymentType.Merchant) {
       throw Error("Expected merchant choices")
     }
-    expect(result.merchants).toHaveLength(13)
+    expect(result.merchants).toHaveLength(10)
   })
 
-  it("returns only compatible swap choices for non-EVM recipients", () => {
+  it("returns only compatible stablecoin swap choices for non-EVM recipients", () => {
     expect(
       parsePaymentDestination({
         destination: solanaRecipient,
@@ -1235,22 +1234,6 @@ describe("parsePaymentDestination Merchant QR", () => {
         paymentType: PaymentType.Merchant,
         merchants: [
           expect.objectContaining({ lnurl: `${tronRecipient}+USDT+Tron@swap.blink.sv` }),
-        ],
-      }),
-    )
-    expect(
-      parsePaymentDestination({
-        destination: liquidRecipient,
-        network: "mainnet",
-        lnAddressDomains: ["blink.sv"],
-      }),
-    ).toEqual(
-      expect.objectContaining({
-        paymentType: PaymentType.Merchant,
-        merchants: [
-          expect.objectContaining({
-            lnurl: `${liquidRecipient}+LBTC+Liquid@swap.blink.sv`,
-          }),
         ],
       }),
     )

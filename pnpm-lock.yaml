@@ -44,9 +44,6 @@ importers:
       bitcoinjs-lib:
         specifier: ^7.0.1
         version: 7.0.1(typescript@6.0.3)
-      blech32:
-        specifier: ^1.1.2
-        version: 1.1.2
       bolt11:
         specifier: ^1.4.1
         version: 1.4.1
@@ -1265,10 +1262,6 @@ packages:
     resolution: {integrity: sha512-vwEmpL5Tpj0I0RBdNkcDMXePoaYSTeKY6mL6/l5esbnTs+jGdPDuLp4NY1hSh6Zk5wSgePygZ4Wx5JJao30Pww==}
     engines: {node: '>=18.0.0'}
 
-  blech32@1.1.2:
-    resolution: {integrity: sha512-C5qxzoF9KyX88X8Zz18cZ6BOeL0n5/Eg/cDot1frntkArRMwg1djNim5wA6QFWwu0lJ1LN8iiRMN4Lp2kZzdfA==}
-    engines: {node: '>=10'}
-
   bn.js@4.12.1:
     resolution: {integrity: sha512-k8TVBiPkPJT9uHLdOKfFpqcfprwBFOAAXXozRubr7R7PfIuKvQlzcI4M0pALeqXN09vdaMbUdUj+pass+uULAg==}
 
@@ -2316,9 +2309,6 @@ packages:
 
   lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
-
-  long@4.0.0:
-    resolution: {integrity: sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==}
 
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
@@ -4369,10 +4359,6 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  blech32@1.1.2:
-    dependencies:
-      long: 4.0.0
-
   bn.js@4.12.1: {}
 
   bolt11@1.4.1:
@@ -5789,8 +5775,6 @@ snapshots:
   lodash.memoize@4.1.2: {}
 
   lodash@4.17.21: {}
-
-  long@4.0.0: {}
 
   lru-cache@10.4.3: {}
 

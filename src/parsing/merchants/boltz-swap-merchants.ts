@@ -18,34 +18,6 @@ const boltzMerchantDetails = {
 
 const swapCapabilities: SwapCapability[] = [
   {
-    asset: "LBTC",
-    displayNetwork: "Liquid",
-    lightningAddressNetwork: "Liquid",
-    networkSlug: "liquid",
-    addressFamily: "liquid",
-  },
-  {
-    asset: "RBTC",
-    displayNetwork: "Rootstock",
-    lightningAddressNetwork: "Rootstock",
-    networkSlug: "rootstock",
-    addressFamily: "evm",
-  },
-  {
-    asset: "tBTC",
-    displayNetwork: "Arbitrum",
-    lightningAddressNetwork: "Arbitrum",
-    networkSlug: "arbitrum",
-    addressFamily: "evm",
-  },
-  {
-    asset: "WBTC",
-    displayNetwork: "Arbitrum",
-    lightningAddressNetwork: "Arbitrum",
-    networkSlug: "arbitrum",
-    addressFamily: "evm",
-  },
-  {
     asset: "USDT",
     displayNetwork: "Tron",
     lightningAddressNetwork: "Tron",

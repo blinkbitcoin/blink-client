@@ -4,16 +4,13 @@ describe("Boltz swap merchants", () => {
   const evmRecipient = "0x52908400098527886E0F7030069857D2E4169EE7"
   const solanaRecipient = "4wBqpZM9xaSheZzJSMawUKKwhdpChKbZ5eu5ky4Vigw"
   const tronRecipient = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
-  const liquidRecipient = "ex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq0srvws"
+  const unsupportedLiquidRecipient = "ex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq0srvws"
 
   test("returns all EVM swap capabilities in declaration order", () => {
     const matches = getMatchingMerchants({ qrContent: evmRecipient, network: "mainnet" })
 
-    expect(matches).toHaveLength(13)
+    expect(matches).toHaveLength(10)
     expect(matches.map(({ id }) => id)).toEqual([
-      "blink-boltz-rbtc-rootstock",
-      "blink-boltz-tbtc-arbitrum",
-      "blink-boltz-wbtc-arbitrum",
       "blink-boltz-usdt-ethereum",
       "blink-boltz-usdt-polygon-pos",
       "blink-boltz-usdt-arbitrum",
@@ -26,11 +23,11 @@ describe("Boltz swap merchants", () => {
       "blink-boltz-usdc-monad",
     ])
     expect(matches[0]).toEqual({
-      id: "blink-boltz-rbtc-rootstock",
-      lnurl: `${evmRecipient}+RBTC+Rootstock@swap.blink.sv`,
+      id: "blink-boltz-usdt-ethereum",
+      lnurl: `${evmRecipient}+USDT+Ethereum@swap.blink.sv`,
       category: "swap",
-      title: "RBTC Rootstock",
-      description: "Swap sats to RBTC on Rootstock",
+      title: "USDT Ethereum",
+      description: "Swap sats to USDT on Ethereum",
       companyName: "Boltz",
       termsUrl: "https://boltz.exchange/terms",
     })
@@ -70,10 +67,8 @@ describe("Boltz swap merchants", () => {
       ),
     ).toEqual([`${tronRecipient}+USDT+Tron@swap.blink.sv`])
     expect(
-      getMatchingMerchants({ qrContent: liquidRecipient, network: "mainnet" }).map(
-        ({ lnurl }) => lnurl,
-      ),
-    ).toEqual([`${liquidRecipient}+LBTC+Liquid@swap.blink.sv`])
+      getMatchingMerchants({ qrContent: unsupportedLiquidRecipient, network: "mainnet" }),
+    ).toEqual([])
   })
 
   test("uses staging swap domains on signet and regtest", () => {
@@ -97,12 +92,12 @@ describe("Boltz swap merchants", () => {
     {
       description: "lowercase EVM",
       recipient: "0xde709f2102306220921060314715629080e2fb77",
-      count: 13,
+      count: 10,
     },
     {
       description: "uppercase EVM",
       recipient: "0XDE709F2102306220921060314715629080E2FB77",
-      count: 13,
+      count: 10,
     },
     {
       description: "bad EVM checksum",
@@ -162,24 +157,11 @@ describe("Boltz swap merchants", () => {
   })
 
   test.each([
+    "ex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq0srvws",
     "lq1qqgqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpztehvrdr30n",
     "PwGP8BzRUHQwchwwPuzAe9WqskgmbKp88f",
     "VTpt5oiR6rTsr6ftQwQzUD8nb4PFhj8Dp3FNCqo4xfMHxcN9dmuKFfsF3Lb1bCZdqpuisAUHwvvLQ8Zw",
-  ])("accepts Liquid recipient encoding %s", (recipient) => {
-    expect(getMatchingMerchants({ qrContent: recipient, network: "mainnet" })).toEqual([
-      expect.objectContaining({ lnurl: `${recipient}+LBTC+Liquid@swap.blink.sv` }),
-    ])
-  })
-
-  test.each([
-    "ex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq0srvwt",
-    "tex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq0yjyjs",
-    "ex13qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqsz9nv0",
-    "ex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3jpj8e",
-    "lq1qqgqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpztehvrdr31n",
-    "lq1qqsqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgx3t8qqdkt6n",
-    "lq1qqgqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq5y376rwx7nwd",
-  ])("rejects invalid Liquid recipient %s", (recipient) => {
+  ])("does not return unsupported Liquid route %s", (recipient) => {
     expect(getMatchingMerchants({ qrContent: recipient, network: "mainnet" })).toEqual([])
   })
 })
