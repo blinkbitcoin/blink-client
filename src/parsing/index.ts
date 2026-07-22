@@ -751,12 +751,14 @@ export const parsePaymentDestination = ({
     }
   }
 
+  const phoneDomain =
+    phoneNumberLnAddressDomain ?? getDefaultPhoneNumberLnAddressDomain(network)
+
   switch (paymentType) {
     case PaymentType.Lnurl:
       return getLNURLPayResponse({
         lnAddressDomains,
-        phoneNumberLnAddressDomain:
-          phoneNumberLnAddressDomain ?? getDefaultPhoneNumberLnAddressDomain(network),
+        phoneNumberLnAddressDomain: phoneDomain,
         destination: destinationForParsing,
         preferLnurlForInternalHandles,
       })

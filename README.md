@@ -24,10 +24,9 @@ const { valid, paymentType, amount } = parsePaymentDestination({
 })
 ```
 
-Valid phone number inputs resolve as Lightning Addresses using `pay.blink.sv` on
-mainnet and `pay.staging.blink.sv` on signet or regtest. Set
-`phoneNumberLnAddressDomain` to override only the phone number Lightning Address
-domain:
+Valid phone number inputs resolve as Lightning Addresses on `pay.blink.sv` for
+mainnet and `pay.staging.blink.sv` for signet or regtest. Set
+`phoneNumberLnAddressDomain` to override only that phone-number domain:
 
 ```js
 parsePaymentDestination({
