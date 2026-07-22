@@ -12,13 +12,13 @@ jobs:
     name: Audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v21
+        uses: DeterminateSystems/nix-installer-action@v14
 
       - name: Run the Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+        uses: DeterminateSystems/magic-nix-cache-action@v8
 
       # Make the Nix-provided pnpm available to setup-node
       - name: Make pnpm available for caching
@@ -28,7 +28,7 @@ jobs:
           ln -sf $(cat /tmp/pnpm_path) ~/.local/bin/pnpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v3
         with:
           node-version: 20
           cache: "pnpm"
