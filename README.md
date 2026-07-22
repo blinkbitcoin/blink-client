@@ -1,4 +1,4 @@
-# Galoy Client
+# Blink Client
 
 JavaScript client library for the Blink stack. This is used in front-end applications like the web and mobile wallets.
 
@@ -7,7 +7,7 @@ JavaScript client library for the Blink stack. This is used in front-end applica
 Install the package with:
 
 ```bash
-yarn add @blinkbitcoin/blink-client
+pnpm add @blinkbitcoin/blink-client
 ```
 
 ## Usage
@@ -20,7 +20,22 @@ import { parsePaymentDestination } from "@blinkbitcoin/blink-client"
 const { valid, paymentType, amount } = parsePaymentDestination({
   destination: "username or invoice or bitcoin address",
   network: "mainnet", // or signet or regtest
+  lnAddressDomains: ["blink.sv"],
 })
+```
+
+Valid phone number inputs resolve as Lightning Addresses on `pay.blink.sv` for
+mainnet and `pay.staging.blink.sv` for signet or regtest. Set
+`phoneNumberLnAddressDomain` to override only that phone-number domain:
+
+```js
+parsePaymentDestination({
+  destination: "+50370123456",
+  network: "mainnet",
+  lnAddressDomains: ["blink.sv"],
+  phoneNumberLnAddressDomain: "phone.example.com",
+})
+// lnurl: "+50370123456@phone.example.com"
 ```
 
 When a QR code or non-phone manual input matches one merchant payment integration, the
@@ -88,53 +103,26 @@ pnpm unlink --global
 </details>
 
 <details>
-<summary>using yarn</summary>
-
-Run:
-
-```bash
-yarn link
-```
-
-and in your test project run:
-
-```bash
-yarn link @galoymoney/client
-```
-
-If you want to remove the symlink, run:
-
-```bash
-# in your test project
-yarn unlink @galoymoney/client
-
-# in galoymoney/client folder
-yarn unlink
-```
-
-</details>
-
-<details>
 <summary>using yalc</summary>
 
 Run:
 
 ```bash
-# in galoymoney/client folder
+# in blinkbitcoin/blink-client folder
 yalc publish
 ```
 
 in your test project run:
 
 ```bash
-yalc add @galoymoney/client
+yalc add @blinkbitcoin/blink-client
 ```
 
 If you want to remove the symlink, run:
 
 ```bash
 # in your test project
-yalc remove @galoymoney/client
+yalc remove @blinkbitcoin/blink-client
 ```
 
 to update changes, you have to run <code>yalc publish</code> before run:

@@ -281,9 +281,14 @@ type ParsePaymentDestinationArgs = {
   destination: string
   network: Network
   lnAddressDomains: string[]
+  phoneNumberLnAddressDomain?: string
   inputSource?: InputSource
   displayCurrency?: string
   preferLnurlForInternalHandles?: boolean
+}
+
+const getDefaultPhoneNumberLnAddressDomain = (network: Network): string => {
+  return network === "mainnet" ? "pay.blink.sv" : "pay.staging.blink.sv"
 }
 
 const getLNParam = (data: string): string | null => {
@@ -482,10 +487,12 @@ const getMerchantLnurlPaymentDestination = ({
 
 const getLNURLPayResponse = ({
   lnAddressDomains,
+  phoneNumberLnAddressDomain,
   destination,
   preferLnurlForInternalHandles = false,
 }: {
   lnAddressDomains: string[]
+  phoneNumberLnAddressDomain: string
   destination: string
   preferLnurlForInternalHandles?: boolean
 }):
@@ -500,6 +507,15 @@ const getLNURLPayResponse = ({
 
     const resolveAsLnurl =
       preferLnurlForInternalHandles && Boolean(username.match(reUsername))
+
+    if (domain === phoneNumberLnAddressDomain && isValidPhoneNumber(username)) {
+      return {
+        valid: true,
+        paymentType: PaymentType.Lnurl,
+        lnurl: `${username}@${domain}`,
+        isMerchant: false,
+      }
+    }
 
     if (!resolveAsLnurl && lnAddressDomains.includes(domain)) {
       return getIntraLedgerPayResponse({
@@ -518,11 +534,10 @@ const getLNURLPayResponse = ({
   }
 
   if (isValidPhoneNumber(trimmed)) {
-    const domain = lnAddressDomains[0]
     return {
       valid: true,
       paymentType: PaymentType.Lnurl,
-      lnurl: `${trimmed}@${domain}`,
+      lnurl: `${trimmed}@${phoneNumberLnAddressDomain}`,
       isMerchant: false,
     }
   }
@@ -698,6 +713,7 @@ export const parsePaymentDestination = ({
   destination,
   network,
   lnAddressDomains,
+  phoneNumberLnAddressDomain,
   inputSource = "manual",
   displayCurrency,
   preferLnurlForInternalHandles = false,
@@ -744,10 +760,14 @@ export const parsePaymentDestination = ({
     }
   }
 
+  const phoneDomain =
+    phoneNumberLnAddressDomain ?? getDefaultPhoneNumberLnAddressDomain(network)
+
   switch (paymentType) {
     case PaymentType.Lnurl:
       return getLNURLPayResponse({
         lnAddressDomains,
+        phoneNumberLnAddressDomain: phoneDomain,
         destination: destinationForParsing,
         preferLnurlForInternalHandles,
       })
