@@ -954,7 +954,7 @@ describe("parsePaymentDestination with preferLnurlForInternalHandles", () => {
       expect.objectContaining({
         paymentType: PaymentType.Lnurl,
         valid: true,
-        lnurl: `+50370123456@${lnAddressDomains[0]}`,
+        lnurl: "+50370123456@pay.blink.sv",
         isMerchant: false,
       }),
     )
@@ -964,6 +964,9 @@ describe("parsePaymentDestination with preferLnurlForInternalHandles", () => {
 describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
   const networks: Network[] = ["mainnet", "signet", "regtest"]
   const lnAddressDomains = ["blink.sv"]
+  const getPhoneNumberLnAddressDomain = (network: Network) => {
+    return network === "mainnet" ? "pay.blink.sv" : "pay.staging.blink.sv"
+  }
 
   test.each(
     networks.flatMap((network) => [
@@ -973,7 +976,7 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
         network,
         expected: {
           paymentType: PaymentType.Lnurl,
-          lnurl: `+50370123456@${lnAddressDomains[0]}`,
+          lnurl: `+50370123456@${getPhoneNumberLnAddressDomain(network)}`,
           valid: true,
           isMerchant: false,
         },
@@ -984,7 +987,7 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
         network,
         expected: {
           paymentType: PaymentType.Lnurl,
-          lnurl: `50370123456@${lnAddressDomains[0]}`,
+          lnurl: `50370123456@${getPhoneNumberLnAddressDomain(network)}`,
           valid: true,
           isMerchant: false,
         },
@@ -995,7 +998,7 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
         network,
         expected: {
           paymentType: PaymentType.Lnurl,
-          lnurl: `0050370123456@${lnAddressDomains[0]}`,
+          lnurl: `0050370123456@${getPhoneNumberLnAddressDomain(network)}`,
           valid: true,
           isMerchant: false,
         },
@@ -1006,7 +1009,7 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
         network,
         expected: {
           paymentType: PaymentType.Lnurl,
-          lnurl: `00 503 7012 3456@${lnAddressDomains[0]}`,
+          lnurl: `00 503 7012 3456@${getPhoneNumberLnAddressDomain(network)}`,
           valid: true,
           isMerchant: false,
         },
@@ -1017,7 +1020,7 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
         network,
         expected: {
           paymentType: PaymentType.Lnurl,
-          lnurl: `+12025550123@${lnAddressDomains[0]}`,
+          lnurl: `+12025550123@${getPhoneNumberLnAddressDomain(network)}`,
           valid: true,
           isMerchant: false,
         },
@@ -1028,7 +1031,7 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
         network,
         expected: {
           paymentType: PaymentType.Lnurl,
-          lnurl: `0012025550123@${lnAddressDomains[0]}`,
+          lnurl: `0012025550123@${getPhoneNumberLnAddressDomain(network)}`,
           valid: true,
           isMerchant: false,
         },
@@ -1078,6 +1081,44 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
     })
 
     expect(paymentDestination).toEqual(expect.objectContaining(expected))
+  })
+
+  test.each(networks)(
+    "uses a custom phone number lightning address domain on %s",
+    (network) => {
+      const paymentDestination = parsePaymentDestination({
+        destination: "+50370123456",
+        network,
+        lnAddressDomains,
+        phoneNumberLnAddressDomain: "phone.example.com",
+      })
+
+      expect(paymentDestination).toEqual(
+        expect.objectContaining({
+          paymentType: PaymentType.Lnurl,
+          lnurl: "+50370123456@phone.example.com",
+          valid: true,
+          isMerchant: false,
+        }),
+      )
+    },
+  )
+
+  it("does not use lnAddressDomains for phone number lnurls", () => {
+    const paymentDestination = parsePaymentDestination({
+      destination: "+50370123456",
+      network: "mainnet",
+      lnAddressDomains: ["internal.example.com"],
+    })
+
+    expect(paymentDestination).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        lnurl: "+50370123456@pay.blink.sv",
+        valid: true,
+        isMerchant: false,
+      }),
+    )
   })
 })
 
@@ -1504,7 +1545,7 @@ describe("parsePaymentDestination QR Input with Merchant Priority", () => {
       expect.objectContaining({
         paymentType: PaymentType.Lnurl,
         valid: true,
-        lnurl: `${phoneNumber}@blink.sv`,
+        lnurl: `${phoneNumber}@pay.blink.sv`,
         isMerchant: false,
       }),
     )
@@ -1526,7 +1567,7 @@ describe("parsePaymentDestination QR Input with Merchant Priority", () => {
       expect.objectContaining({
         paymentType: PaymentType.Lnurl,
         valid: true,
-        lnurl: `${phoneNumber}@blink.sv`,
+        lnurl: `${phoneNumber}@pay.blink.sv`,
         isMerchant: false,
       }),
     )
@@ -1546,7 +1587,7 @@ describe("parsePaymentDestination QR Input with Merchant Priority", () => {
       expect.objectContaining({
         paymentType: PaymentType.Lnurl,
         valid: true,
-        lnurl: `${phoneNumber}@blink.sv`,
+        lnurl: `${phoneNumber}@pay.blink.sv`,
         isMerchant: false,
       }),
     )

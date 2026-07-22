@@ -20,7 +20,23 @@ import { parsePaymentDestination } from "@blinkbitcoin/blink-client"
 const { valid, paymentType, amount } = parsePaymentDestination({
   destination: "username or invoice or bitcoin address",
   network: "mainnet", // or signet or regtest
+  lnAddressDomains: ["blink.sv"],
 })
+```
+
+Valid phone number inputs resolve as Lightning Addresses using `pay.blink.sv` on
+mainnet and `pay.staging.blink.sv` on signet or regtest. Set
+`phoneNumberLnAddressDomain` to override only the phone number Lightning Address
+domain:
+
+```js
+parsePaymentDestination({
+  destination: "+50370123456",
+  network: "mainnet",
+  lnAddressDomains: ["blink.sv"],
+  phoneNumberLnAddressDomain: "phone.example.com",
+})
+// lnurl: "+50370123456@phone.example.com"
 ```
 
 When a QR code or non-phone manual input matches one merchant payment integration, the
