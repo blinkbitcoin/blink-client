@@ -184,6 +184,22 @@ describe("parsePaymentDestination validations", () => {
     )
   })
 
+  it("routes an EVM-shaped Blink lightning address internally", () => {
+    const handle = "0xde709f2102306220921060314715629080e2fb77"
+    const result = parsePaymentDestination({
+      destination: `${handle}@blink.sv`,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Intraledger,
+        handle,
+      }),
+    )
+  })
+
   it("validates an external lightning address", () => {
     const result = parsePaymentDestination({
       destination: externalLnAddress,
@@ -1066,6 +1082,10 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
 })
 
 describe("parsePaymentDestination Merchant QR", () => {
+  const evmRecipient = "0x52908400098527886E0F7030069857D2E4169EE7"
+  const solanaRecipient = "4wBqpZM9xaSheZzJSMawUKKwhdpChKbZ5eu5ky4Vigw"
+  const tronRecipient = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
+
   it("validates a merchant QR code on mainnet", () => {
     const merchantQR =
       "00020129530023za.co.electrum.picknpay0122RD2HAK3KTI53EC/confirm520458125303710540115802ZA5916cryptoqrtestscan6002CT63049BE2"
@@ -1154,6 +1174,160 @@ describe("parsePaymentDestination Merchant QR", () => {
         merchant: expect.objectContaining({ id: "picknpay" }),
       }),
     )
+  })
+
+  it("returns swap merchant choices for a manual EVM recipient", () => {
+    const result = parsePaymentDestination({
+      destination: evmRecipient,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+      displayCurrency: "USD",
+    })
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: expect.arrayContaining([
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+Arbitrum@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDT+Ethereum@swap.blink.sv`,
+          }),
+        ]),
+      }),
+    )
+    if (result.paymentType !== PaymentType.Merchant) {
+      throw Error("Expected merchant choices")
+    }
+    expect(result.merchants).toHaveLength(10)
+  })
+
+  it("returns swap merchant choices for a lowercase EVM recipient", () => {
+    const lowercaseEvmRecipient = "0xde709f2102306220921060314715629080e2fb77"
+
+    expect(
+      parsePaymentDestination({
+        destination: lowercaseEvmRecipient,
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: expect.arrayContaining([
+          expect.objectContaining({
+            lnurl: `${lowercaseEvmRecipient}+USDT+Ethereum@swap.blink.sv`,
+          }),
+        ]),
+      }),
+    )
+  })
+
+  it("returns swap merchant choices filtered by asset", () => {
+    const result = parsePaymentDestination({
+      destination: `${evmRecipient}+USDC`,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: [
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+Ethereum@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+Base@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+Arbitrum@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+PolygonPoS@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+AvalancheCChain@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+Monad@swap.blink.sv`,
+          }),
+        ],
+      }),
+    )
+  })
+
+  it("returns one merchant choice for one filtered swap route", () => {
+    const result = parsePaymentDestination({
+      destination: `${evmRecipient}+USDC+Arbitrum`,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+    })
+
+    expect(result).toEqual({
+      paymentType: PaymentType.Merchant,
+      merchants: [
+        expect.objectContaining({
+          id: "blink-boltz-usdc-arbitrum",
+          lnurl: `${evmRecipient}+USDC+Arbitrum@swap.blink.sv`,
+        }),
+      ],
+    })
+  })
+
+  it("returns only compatible stablecoin swap choices for non-EVM recipients", () => {
+    expect(
+      parsePaymentDestination({
+        destination: solanaRecipient,
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: [
+          expect.objectContaining({
+            lnurl: `${solanaRecipient}+USDT+Solana@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${solanaRecipient}+USDC+Solana@swap.blink.sv`,
+          }),
+        ],
+      }),
+    )
+    expect(
+      parsePaymentDestination({
+        destination: tronRecipient,
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: [
+          expect.objectContaining({ lnurl: `${tronRecipient}+USDT+Tron@swap.blink.sv` }),
+        ],
+      }),
+    )
+  })
+
+  it("keeps invalid swap recipients unknown", () => {
+    const invalidSwapRecipients = [
+      "not-a-valid-swap-recipient!",
+      "0x52908400098527886E0F7030069857D2E4169Ee7",
+      "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwc",
+    ]
+
+    for (const destination of invalidSwapRecipients) {
+      expect(
+        parsePaymentDestination({
+          destination,
+          network: "mainnet",
+          lnAddressDomains: ["blink.sv"],
+        }),
+      ).toEqual({ paymentType: PaymentType.Unknown, valid: false })
+    }
   })
 })
 

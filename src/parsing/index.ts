@@ -11,6 +11,10 @@ import {
   getMatchingMerchants,
   type Merchant,
 } from "./merchants"
+import {
+  getSwapAddressFamily,
+  isSwapRecipientCandidate,
+} from "./merchants/swap-recipient-validators"
 
 bitcoinjs.initEccLib(ecc)
 
@@ -727,8 +731,16 @@ export const parsePaymentDestination = ({
     if (merchantResponse) {
       return merchantResponse
     }
-    if (merchants.length > 1) {
+    if (merchants.length > 0) {
       return { paymentType: PaymentType.Merchant, merchants }
+    }
+
+    const [swapRecipient] = merchantContent.split("+")
+    if (
+      isSwapRecipientCandidate(swapRecipient) &&
+      getSwapAddressFamily(swapRecipient) === null
+    ) {
+      return { paymentType: PaymentType.Unknown, valid: false }
     }
   }
 
