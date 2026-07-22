@@ -1409,6 +1409,22 @@ describe("parsePaymentDestination - Numeric Lightning Addresses", () => {
     expect(result).not.toHaveProperty("merchant")
   })
 
+  it("validates an external lightning address with leading zero numeric username", () => {
+    const result = parsePaymentDestination({
+      destination: "0777491011@example.com",
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv", "pay.blink.sv"],
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "0777491011@example.com",
+        isMerchant: false,
+      }),
+    )
+  })
+
   it("validates an external lightning address with phone number username (with +)", () => {
     const result = parsePaymentDestination({
       destination: "+254793673300@bitcoin.co.ke",
