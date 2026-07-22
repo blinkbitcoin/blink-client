@@ -508,6 +508,15 @@ const getLNURLPayResponse = ({
     const resolveAsLnurl =
       preferLnurlForInternalHandles && Boolean(username.match(reUsername))
 
+    if (domain === phoneNumberLnAddressDomain && isValidPhoneNumber(username)) {
+      return {
+        valid: true,
+        paymentType: PaymentType.Lnurl,
+        lnurl: `${username}@${domain}`,
+        isMerchant: false,
+      }
+    }
+
     if (!resolveAsLnurl && lnAddressDomains.includes(domain)) {
       return getIntraLedgerPayResponse({
         destinationWithoutProtocol: username,

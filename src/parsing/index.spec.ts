@@ -1122,6 +1122,23 @@ describe("parsePaymentDestination - Phone Number as LNURL Payment", () => {
       }),
     )
   })
+
+  it("keeps phone number lightning addresses as lnurls on internal domains", () => {
+    const paymentDestination = parsePaymentDestination({
+      destination: "+50370123456@pay.blink.sv",
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv", "pay.blink.sv"],
+    })
+
+    expect(paymentDestination).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        lnurl: "+50370123456@pay.blink.sv",
+        valid: true,
+        isMerchant: false,
+      }),
+    )
+  })
 })
 
 describe("parsePaymentDestination Merchant QR", () => {
