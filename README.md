@@ -1,4 +1,4 @@
-# Galoy Client
+# Blink Client
 
 JavaScript client library for the Blink stack. This is used in front-end applications like the web and mobile wallets.
 
@@ -7,7 +7,7 @@ JavaScript client library for the Blink stack. This is used in front-end applica
 Install the package with:
 
 ```bash
-yarn add @blinkbitcoin/blink-client
+pnpm add @blinkbitcoin/blink-client
 ```
 
 ## Usage
@@ -103,53 +103,26 @@ pnpm unlink --global
 </details>
 
 <details>
-<summary>using yarn</summary>
-
-Run:
-
-```bash
-yarn link
-```
-
-and in your test project run:
-
-```bash
-yarn link @galoymoney/client
-```
-
-If you want to remove the symlink, run:
-
-```bash
-# in your test project
-yarn unlink @galoymoney/client
-
-# in galoymoney/client folder
-yarn unlink
-```
-
-</details>
-
-<details>
 <summary>using yalc</summary>
 
 Run:
 
 ```bash
-# in galoymoney/client folder
+# in blinkbitcoin/blink-client folder
 yalc publish
 ```
 
 in your test project run:
 
 ```bash
-yalc add @galoymoney/client
+yalc add @blinkbitcoin/blink-client
 ```
 
 If you want to remove the symlink, run:
 
 ```bash
 # in your test project
-yalc remove @galoymoney/client
+yalc remove @blinkbitcoin/blink-client
 ```
 
 to update changes, you have to run <code>yalc publish</code> before run:
