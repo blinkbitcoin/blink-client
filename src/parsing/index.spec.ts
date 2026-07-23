@@ -1296,22 +1296,22 @@ describe("parsePaymentDestination Merchant QR", () => {
         paymentType: PaymentType.Merchant,
         merchants: [
           expect.objectContaining({
-            lnurl: `${evmRecipient}+USDC+Ethereum@swap.blink.sv`,
-          }),
-          expect.objectContaining({
-            lnurl: `${evmRecipient}+USDC+Base@swap.blink.sv`,
-          }),
-          expect.objectContaining({
             lnurl: `${evmRecipient}+USDC+Arbitrum@swap.blink.sv`,
-          }),
-          expect.objectContaining({
-            lnurl: `${evmRecipient}+USDC+PolygonPoS@swap.blink.sv`,
           }),
           expect.objectContaining({
             lnurl: `${evmRecipient}+USDC+AvalancheCChain@swap.blink.sv`,
           }),
           expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+Base@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+Ethereum@swap.blink.sv`,
+          }),
+          expect.objectContaining({
             lnurl: `${evmRecipient}+USDC+Monad@swap.blink.sv`,
+          }),
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDC+PolygonPoS@swap.blink.sv`,
           }),
         ],
       }),
@@ -1348,10 +1348,10 @@ describe("parsePaymentDestination Merchant QR", () => {
         paymentType: PaymentType.Merchant,
         merchants: [
           expect.objectContaining({
-            lnurl: `${solanaRecipient}+USDT+Solana@swap.blink.sv`,
+            lnurl: `${solanaRecipient}+USDC+Solana@swap.blink.sv`,
           }),
           expect.objectContaining({
-            lnurl: `${solanaRecipient}+USDC+Solana@swap.blink.sv`,
+            lnurl: `${solanaRecipient}+USDT+Solana@swap.blink.sv`,
           }),
         ],
       }),

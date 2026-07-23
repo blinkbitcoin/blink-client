@@ -10,18 +10,18 @@ describe("Boltz swap merchants", () => {
 
     expect(matches).toHaveLength(10)
     expect(matches.map(({ id }) => id)).toEqual([
-      "blink-boltz-usdt-ethereum",
-      "blink-boltz-usdt-polygon-pos",
-      "blink-boltz-usdt-arbitrum",
-      "blink-boltz-usdt-plasma",
-      "blink-boltz-usdc-ethereum",
-      "blink-boltz-usdc-base",
       "blink-boltz-usdc-arbitrum",
-      "blink-boltz-usdc-polygon-pos",
       "blink-boltz-usdc-avalanche-c-chain",
+      "blink-boltz-usdc-base",
+      "blink-boltz-usdc-ethereum",
       "blink-boltz-usdc-monad",
+      "blink-boltz-usdc-polygon-pos",
+      "blink-boltz-usdt-arbitrum",
+      "blink-boltz-usdt-ethereum",
+      "blink-boltz-usdt-plasma",
+      "blink-boltz-usdt-polygon-pos",
     ])
-    expect(matches[0]).toEqual({
+    expect(matches.find(({ id }) => id === "blink-boltz-usdt-ethereum")).toEqual({
       id: "blink-boltz-usdt-ethereum",
       lnurl: `${evmRecipient}+USDT+Ethereum@swap.blink.sv`,
       category: "swap",
@@ -57,8 +57,8 @@ describe("Boltz swap merchants", () => {
         ({ lnurl }) => lnurl,
       ),
     ).toEqual([
-      `${solanaRecipient}+USDT+Solana@swap.blink.sv`,
       `${solanaRecipient}+USDC+Solana@swap.blink.sv`,
+      `${solanaRecipient}+USDT+Solana@swap.blink.sv`,
     ])
     expect(
       getMatchingMerchants({ qrContent: tronRecipient, network: "mainnet" }).map(
@@ -74,12 +74,12 @@ describe("Boltz swap merchants", () => {
         network: "mainnet",
       }).map(({ id }) => id),
     ).toEqual([
-      "blink-boltz-usdc-ethereum",
-      "blink-boltz-usdc-base",
       "blink-boltz-usdc-arbitrum",
-      "blink-boltz-usdc-polygon-pos",
       "blink-boltz-usdc-avalanche-c-chain",
+      "blink-boltz-usdc-base",
+      "blink-boltz-usdc-ethereum",
       "blink-boltz-usdc-monad",
+      "blink-boltz-usdc-polygon-pos",
     ])
     expect(
       getMatchingMerchants({
@@ -87,10 +87,10 @@ describe("Boltz swap merchants", () => {
         network: "mainnet",
       }).map(({ id }) => id),
     ).toEqual([
-      "blink-boltz-usdt-ethereum",
-      "blink-boltz-usdt-polygon-pos",
       "blink-boltz-usdt-arbitrum",
+      "blink-boltz-usdt-ethereum",
       "blink-boltz-usdt-plasma",
+      "blink-boltz-usdt-polygon-pos",
     ])
   })
 
