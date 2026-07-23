@@ -61,7 +61,7 @@ export const getCurrencyMatchedMerchant = ({
   displayCurrency?: string
 }): Merchant | null => {
   if (matchingMerchants.length === 1) {
-    return matchingMerchants[0].category === "swap" ? null : matchingMerchants[0]
+    return matchingMerchants[0]
   }
 
   const normalizedCurrency = displayCurrency?.trim().toUpperCase()
