@@ -40,6 +40,11 @@ const payCodeLnurlWithAmount =
   "lnurl1dp68gurn8ghj7urp0yhxymrfde4juumk9uh8wetvdskkkmn0wahz7mrww4excup0w4ek2unwv9kk20mpd4hh2mn585cnqvpsk9qdwf"
 const externalPayCodeLnurl =
   "lnurl1dp68gurn8ghj7etcw3jhymnpdshxxmmd9uh8wetvdskkkmn0wahz7mrww4excup0w4ek2unwv9kk2qwn37d"
+// https://pay.blink.sv/some/other/path — an internal host, but not an lnurlp endpoint
+const internalNonLnurlpLnurl =
+  "lnurl1dp68gurn8ghj7urp0yhxymrfde4juumk9aek7mt99ahhg6r9wghhqct5dqssae64"
+// decodes to the bare string "not-a-url-at-all"
+const nonUrlLnurl = "lnurl1dehhgttp946hympdv96z6ctvdsvthy9h"
 
 const lnInvoice =
   "LNBC6864270N1P05ZVJJPP5FPEHVLV3DD2R76065R9V0L3N8QV9MFWU9RYHVPJ5XSZ3P4HY734QDZHXYSV89EQYVMZQSNFW3PXCMMRDDPX7MMDYPP8YATWVD5ZQMMWYPQH2EM4WD6ZQVESYQ5YYUN4DE3KSGZ0DEK8J2GCQZPGXQRRSS6LQA5JLLVUGLW5TPSUG4S2TMT5C8FNERR95FUH8HTCSYX52CP3WZSWJ32XJ5GEWYFN7MG293V6JLA9CZ8ZNDHWDHCNNKUL2QKF6PJLSPJ2NL3J"
@@ -2008,7 +2013,7 @@ describe("parsePaymentDestination with a Blink pay code lnurl", () => {
     )
   })
 
-  it("keeps the raw lnurl for a non-lnurlp path on an internal domain", () => {
+  it("keeps the raw lnurl for an unrelated lnurl endpoint", () => {
     const result = parsePaymentDestination({
       destination: lnUrlInvoice,
       network: "mainnet",
@@ -2019,6 +2024,38 @@ describe("parsePaymentDestination with a Blink pay code lnurl", () => {
         paymentType: PaymentType.Lnurl,
         valid: true,
         lnurl: lnUrlInvoice,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("keeps the raw lnurl for a non-lnurlp path on an internal domain", () => {
+    const result = parsePaymentDestination({
+      destination: internalNonLnurlpLnurl,
+      network: "mainnet",
+      lnAddressDomains,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: internalNonLnurlpLnurl,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("keeps the raw lnurl when the payload does not decode to a url", () => {
+    const result = parsePaymentDestination({
+      destination: nonUrlLnurl,
+      network: "mainnet",
+      lnAddressDomains,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: nonUrlLnurl,
         isMerchant: false,
       }),
     )
