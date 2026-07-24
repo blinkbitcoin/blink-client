@@ -1374,6 +1374,20 @@ describe("parsePaymentDestination Merchant QR", () => {
     )
   })
 
+  it("returns a clean swap lnurl for a scheme URL filtered route", () => {
+    expect(
+      parseMerchantQr(`custom://${recipientAddress}+USDC+Arbitrum?amount=1`),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: `${recipientAddress}+USDC+Arbitrum@swap.blink.sv`,
+        isMerchant: true,
+        merchant: expect.objectContaining({ id: "blink-boltz-usdc-arbitrum" }),
+      }),
+    )
+  })
+
   it("returns clean swap merchants for an EIP-681 pay request", () => {
     const result = parseMerchantQr(
       `ethereum:pay-${recipientAddress}@1/transfer?uint256=100`,

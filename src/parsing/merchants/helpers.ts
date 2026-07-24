@@ -6,7 +6,8 @@ export const getIdentifierFromRegex =
 const uriScheme = /^([a-z][a-z0-9+.-]*):(.*)$/iu
 
 const normalizeMerchantUriPayload = (payload: string): string => {
-  const withoutQueryOrHash = payload.split(/[?#]/u)[0]
+  const withoutLeadingSlashes = payload.replace(/^\/+/u, "")
+  const withoutQueryOrHash = withoutLeadingSlashes.split(/[?#]/u)[0]
   const withoutPayPrefix = withoutQueryOrHash.toLowerCase().startsWith("pay-")
     ? withoutQueryOrHash.slice(4)
     : withoutQueryOrHash
