@@ -4,17 +4,18 @@ export const getIdentifierFromRegex =
     input.match(regex)?.groups?.identifier ?? null
 
 const uriScheme = /^([a-z][a-z0-9+.-]*):(.*)$/iu
+const addressWithRoute = /^(?<address>0x[0-9a-f]{40})(?<rest>.*)$/iu
 
 const normalizeMerchantUriPayload = (payload: string): string => {
   const withoutQueryOrHash = payload.split(/[?#]/u)[0]
-  const eip681Payload = withoutQueryOrHash.match(/^pay-0x/iu)
+  const eip681Payload = withoutQueryOrHash.toLowerCase().startsWith("pay-0x")
     ? withoutQueryOrHash.slice(4)
     : withoutQueryOrHash
 
-  const evmMatch = eip681Payload.match(/^(?<address>0x[0-9a-f]{40})(?<rest>.*)$/iu)
-  if (evmMatch?.groups?.address) {
-    const route = evmMatch.groups.rest.match(/^\+[^@/?#]*/u)?.[0] ?? ""
-    return `${evmMatch.groups.address}${route}`
+  const addressMatch = eip681Payload.match(addressWithRoute)
+  if (addressMatch?.groups?.address) {
+    const route = addressMatch.groups.rest.match(/^\+[^@/?#]*/u)?.[0] ?? ""
+    return `${addressMatch.groups.address}${route}`
   }
 
   return eip681Payload.split(/[/?@]/u)[0]

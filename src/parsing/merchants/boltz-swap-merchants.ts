@@ -14,6 +14,7 @@ type SwapCapability = {
 type BoltzSwapInput = {
   recipient: string
   capabilities: SwapCapability[]
+  normalizedInput: string
 }
 
 const boltzMerchantDetails = {
@@ -151,7 +152,8 @@ const capabilityMatchesFilters = ({
 }
 
 const parseBoltzSwapInput = (input: string): BoltzSwapInput | null => {
-  const segments = normalizeMerchantInput(input).split("+")
+  const normalizedInput = normalizeMerchantInput(input)
+  const segments = normalizedInput.split("+")
   if (segments.length > 3) {
     return null
   }
@@ -190,11 +192,12 @@ const parseBoltzSwapInput = (input: string): BoltzSwapInput | null => {
   return {
     recipient,
     capabilities,
+    normalizedInput,
   }
 }
 
 export const getBoltzSwapIdentifier = (input: string): string | null => {
-  return parseBoltzSwapInput(input) ? normalizeMerchantInput(input) : null
+  return parseBoltzSwapInput(input)?.normalizedInput ?? null
 }
 
 export const getBoltzSwapMerchants = (input: string, network: Network): Merchant[] => {

@@ -1336,20 +1336,24 @@ describe("parsePaymentDestination Merchant QR", () => {
     )
   })
 
-  it("returns EVM swap merchants for an arbitrary URI scheme containing an EVM address", () => {
-    const result = parsePaymentDestination({
-      destination: `solana:${evmRecipient}`,
+  const parseMerchantQr = (destination: string) =>
+    parsePaymentDestination({
+      destination,
       network: "mainnet",
       lnAddressDomains: ["blink.sv"],
       inputSource: "qr",
     })
+  const recipientAddress = evmRecipient
+
+  it("returns swap merchants for an arbitrary URI scheme containing a recipient address", () => {
+    const result = parseMerchantQr(`solana:${recipientAddress}`)
 
     expect(result).toEqual(
       expect.objectContaining({
         paymentType: PaymentType.Merchant,
         merchants: expect.arrayContaining([
           expect.objectContaining({
-            lnurl: `${evmRecipient}+USDT+Ethereum@swap.blink.sv`,
+            lnurl: `${recipientAddress}+USDT+Ethereum@swap.blink.sv`,
           }),
         ]),
       }),
@@ -1358,37 +1362,29 @@ describe("parsePaymentDestination Merchant QR", () => {
 
   it("returns a clean swap lnurl for an EIP-681-style filtered route", () => {
     expect(
-      parsePaymentDestination({
-        destination: `ethereum:${evmRecipient}+USDC+Arbitrum?amount=1`,
-        network: "mainnet",
-        lnAddressDomains: ["blink.sv"],
-        inputSource: "qr",
-      }),
+      parseMerchantQr(`ethereum:${recipientAddress}+USDC+Arbitrum?amount=1`),
     ).toEqual(
       expect.objectContaining({
         paymentType: PaymentType.Lnurl,
         valid: true,
-        lnurl: `${evmRecipient}+USDC+Arbitrum@swap.blink.sv`,
+        lnurl: `${recipientAddress}+USDC+Arbitrum@swap.blink.sv`,
         isMerchant: true,
         merchant: expect.objectContaining({ id: "blink-boltz-usdc-arbitrum" }),
       }),
     )
   })
 
-  it("returns clean EVM swap merchants for an EIP-681 pay request", () => {
-    const result = parsePaymentDestination({
-      destination: `ethereum:pay-${evmRecipient}@1/transfer?uint256=100`,
-      network: "mainnet",
-      lnAddressDomains: ["blink.sv"],
-      inputSource: "qr",
-    })
+  it("returns clean swap merchants for an EIP-681 pay request", () => {
+    const result = parseMerchantQr(
+      `ethereum:pay-${recipientAddress}@1/transfer?uint256=100`,
+    )
 
     expect(result).toEqual(
       expect.objectContaining({
         paymentType: PaymentType.Merchant,
         merchants: expect.arrayContaining([
           expect.objectContaining({
-            lnurl: `${evmRecipient}+USDT+Ethereum@swap.blink.sv`,
+            lnurl: `${recipientAddress}+USDT+Ethereum@swap.blink.sv`,
           }),
         ]),
       }),
@@ -1397,12 +1393,7 @@ describe("parsePaymentDestination Merchant QR", () => {
 
   it("keeps invalid URI-wrapped swap recipients unknown", () => {
     expect(
-      parsePaymentDestination({
-        destination: "ethereum:0x52908400098527886E0F7030069857D2E4169Ee7?amount=1",
-        network: "mainnet",
-        lnAddressDomains: ["blink.sv"],
-        inputSource: "qr",
-      }),
+      parseMerchantQr("ethereum:0x52908400098527886E0F7030069857D2E4169Ee7?amount=1"),
     ).toEqual({ paymentType: PaymentType.Unknown, valid: false })
   })
 

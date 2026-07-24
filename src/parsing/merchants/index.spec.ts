@@ -18,15 +18,18 @@ describe("getIdentifierFromRegex", () => {
 })
 
 describe("normalizeMerchantInput", () => {
-  const evmRecipient = "0x52908400098527886E0F7030069857D2E4169EE7"
+  const recipientAddress = "0x52908400098527886E0F7030069857D2E4169EE7"
   const solanaRecipient = "4wBqpZM9xaSheZzJSMawUKKwhdpChKbZ5eu5ky4Vigw"
   const tronRecipient = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
 
   test.each([
-    [`ethereum:${evmRecipient}`, evmRecipient],
-    [`solana:${evmRecipient}?amount=1`, evmRecipient],
-    [`ethereum:pay-${evmRecipient}@1/transfer?uint256=100`, evmRecipient],
-    [`custom:${evmRecipient}+USDC+Arbitrum?amount=1`, `${evmRecipient}+USDC+Arbitrum`],
+    [`ethereum:${recipientAddress}`, recipientAddress],
+    [`solana:${recipientAddress}?amount=1`, recipientAddress],
+    [`ethereum:pay-${recipientAddress}@1/transfer?uint256=100`, recipientAddress],
+    [
+      `custom:${recipientAddress}+USDC+Arbitrum?amount=1`,
+      `${recipientAddress}+USDC+Arbitrum`,
+    ],
     [`solana:${solanaRecipient}/transfer?amount=1`, solanaRecipient],
     [`tron:${tronRecipient}?amount=1`, tronRecipient],
     ["https://pos.snapscan.io/qr/STB2ACC8", "https://pos.snapscan.io/qr/STB2ACC8"],
