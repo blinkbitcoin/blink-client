@@ -4,6 +4,7 @@ import {
   merchants,
   strictUriEncode,
 } from "."
+import { normalizeMerchantInput } from "./helpers"
 
 describe("getIdentifierFromRegex", () => {
   test("returns the named identifier group", () => {
@@ -13,6 +14,33 @@ describe("getIdentifierFromRegex", () => {
 
     expect(getIdentifier("prefix-abc123-suffix")).toBe("abc123")
     expect(getIdentifier("prefix-abc123-other")).toBeNull()
+  })
+})
+
+describe("normalizeMerchantInput", () => {
+  const recipientAddress = "0x52908400098527886E0F7030069857D2E4169EE7"
+  const solanaRecipient = "4wBqpZM9xaSheZzJSMawUKKwhdpChKbZ5eu5ky4Vigw"
+  const tronRecipient = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
+
+  test.each([
+    [`ethereum:${recipientAddress}`, recipientAddress],
+    [`solana:${recipientAddress}?amount=1`, recipientAddress],
+    [`ethereum:pay-${recipientAddress}@1/transfer?uint256=100`, recipientAddress],
+    [
+      `custom:${recipientAddress}+USDC+Arbitrum?amount=1`,
+      `${recipientAddress}+USDC+Arbitrum`,
+    ],
+    [
+      `custom://${recipientAddress}+USDC+Arbitrum?amount=1`,
+      `${recipientAddress}+USDC+Arbitrum`,
+    ],
+    [`custom:${solanaRecipient}+USDC+Solana?amount=1`, `${solanaRecipient}+USDC+Solana`],
+    [`custom:${tronRecipient}+USDT+Tron?amount=1`, `${tronRecipient}+USDT+Tron`],
+    [`solana:${solanaRecipient}/transfer?amount=1`, solanaRecipient],
+    [`tron:${tronRecipient}?amount=1`, tronRecipient],
+    ["https://pos.snapscan.io/qr/STB2ACC8", "https://pos.snapscan.io/qr/STB2ACC8"],
+  ])("normalizes %s", (input, expected) => {
+    expect(normalizeMerchantInput(input)).toBe(expected)
   })
 })
 
@@ -70,6 +98,16 @@ describe("convertMerchantQRToLightningAddress with displayCurrency", () => {
     })
 
     expect(result).toBe("test-payment-qr@usd-merchant.com")
+  })
+
+  test("passes non-Boltz merchant content through without URI normalization", () => {
+    const result = convertMerchantQRToLightningAddress({
+      qrContent: "custom:test-payment-qr?amount=1",
+      network: "mainnet",
+      displayCurrency: "USD",
+    })
+
+    expect(result).toBe("custom%3Atest-payment-qr%3Famount%3D1@usd-merchant.com")
   })
 
   test("handles case-insensitive displayCurrency matching", () => {

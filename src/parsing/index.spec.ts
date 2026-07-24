@@ -1336,6 +1336,105 @@ describe("parsePaymentDestination Merchant QR", () => {
     )
   })
 
+  const parseMerchantQr = (destination: string) =>
+    parsePaymentDestination({
+      destination,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+      inputSource: "qr",
+    })
+  const recipientAddress = evmRecipient
+
+  it("returns swap merchants for an arbitrary URI scheme containing a recipient address", () => {
+    const result = parseMerchantQr(`solana:${recipientAddress}`)
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: expect.arrayContaining([
+          expect.objectContaining({
+            lnurl: `${recipientAddress}+USDT+Ethereum@swap.blink.sv`,
+          }),
+        ]),
+      }),
+    )
+  })
+
+  it("returns a clean swap lnurl for an EIP-681-style filtered route", () => {
+    expect(
+      parseMerchantQr(`ethereum:${recipientAddress}+USDC+Arbitrum?amount=1`),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: `${recipientAddress}+USDC+Arbitrum@swap.blink.sv`,
+        isMerchant: true,
+        merchant: expect.objectContaining({ id: "blink-boltz-usdc-arbitrum" }),
+      }),
+    )
+  })
+
+  it("returns a clean swap lnurl for a scheme URL filtered route", () => {
+    expect(
+      parseMerchantQr(`custom://${recipientAddress}+USDC+Arbitrum?amount=1`),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: `${recipientAddress}+USDC+Arbitrum@swap.blink.sv`,
+        isMerchant: true,
+        merchant: expect.objectContaining({ id: "blink-boltz-usdc-arbitrum" }),
+      }),
+    )
+  })
+
+  it("returns clean swap merchants for an EIP-681 pay request", () => {
+    const result = parseMerchantQr(
+      `ethereum:pay-${recipientAddress}@1/transfer?uint256=100`,
+    )
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: expect.arrayContaining([
+          expect.objectContaining({
+            lnurl: `${recipientAddress}+USDT+Ethereum@swap.blink.sv`,
+          }),
+        ]),
+      }),
+    )
+  })
+
+  it("returns a clean Solana swap lnurl for a URI-wrapped filtered route", () => {
+    expect(parseMerchantQr(`custom:${solanaRecipient}+USDC+Solana?amount=1`)).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: `${solanaRecipient}+USDC+Solana@swap.blink.sv`,
+        isMerchant: true,
+        merchant: expect.objectContaining({ id: "blink-boltz-usdc-solana" }),
+      }),
+    )
+  })
+
+  it("returns a clean Tron swap lnurl for a URI-wrapped filtered route", () => {
+    expect(parseMerchantQr(`custom:${tronRecipient}+USDT+Tron?amount=1`)).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: `${tronRecipient}+USDT+Tron@swap.blink.sv`,
+        isMerchant: true,
+        merchant: expect.objectContaining({ id: "blink-boltz-usdt-tron" }),
+      }),
+    )
+  })
+
+  it("keeps invalid URI-wrapped swap recipients unknown", () => {
+    expect(
+      parseMerchantQr("ethereum:0x52908400098527886E0F7030069857D2E4169Ee7?amount=1"),
+    ).toEqual({ paymentType: PaymentType.Unknown, valid: false })
+  })
+
   it("returns only compatible stablecoin swap choices for non-EVM recipients", () => {
     expect(
       parsePaymentDestination({
