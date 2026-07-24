@@ -1,4 +1,5 @@
 import { boltzSwapMerchant } from "./boltz-swap-merchants"
+import { normalizeMerchantInput } from "./helpers"
 import { moneyBadgerMerchants } from "./money-badger-merchants"
 import type { Merchant, MerchantConfig } from "./types"
 import type { Network } from "../types"
@@ -28,9 +29,10 @@ export const getMatchingMerchants = ({
   }
 
   const matchedMerchants: Merchant[] = []
+  const normalizedQrContent = normalizeMerchantInput(qrContent)
 
   for (const merchant of merchants) {
-    const identifier = merchant.getIdentifier(qrContent)
+    const identifier = merchant.getIdentifier(normalizedQrContent)
     if (identifier) {
       if (merchant.getMerchants) {
         matchedMerchants.push(...merchant.getMerchants(identifier, network))

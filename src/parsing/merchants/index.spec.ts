@@ -4,6 +4,7 @@ import {
   merchants,
   strictUriEncode,
 } from "."
+import { normalizeMerchantInput } from "./helpers"
 
 describe("getIdentifierFromRegex", () => {
   test("returns the named identifier group", () => {
@@ -13,6 +14,24 @@ describe("getIdentifierFromRegex", () => {
 
     expect(getIdentifier("prefix-abc123-suffix")).toBe("abc123")
     expect(getIdentifier("prefix-abc123-other")).toBeNull()
+  })
+})
+
+describe("normalizeMerchantInput", () => {
+  const evmRecipient = "0x52908400098527886E0F7030069857D2E4169EE7"
+  const solanaRecipient = "4wBqpZM9xaSheZzJSMawUKKwhdpChKbZ5eu5ky4Vigw"
+  const tronRecipient = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
+
+  test.each([
+    [`ethereum:${evmRecipient}`, evmRecipient],
+    [`solana:${evmRecipient}?amount=1`, evmRecipient],
+    [`ethereum:pay-${evmRecipient}@1/transfer?uint256=100`, evmRecipient],
+    [`custom:${evmRecipient}+USDC+Arbitrum?amount=1`, `${evmRecipient}+USDC+Arbitrum`],
+    [`solana:${solanaRecipient}/transfer?amount=1`, solanaRecipient],
+    [`tron:${tronRecipient}?amount=1`, tronRecipient],
+    ["https://pos.snapscan.io/qr/STB2ACC8", "https://pos.snapscan.io/qr/STB2ACC8"],
+  ])("normalizes %s", (input, expected) => {
+    expect(normalizeMerchantInput(input)).toBe(expected)
   })
 })
 

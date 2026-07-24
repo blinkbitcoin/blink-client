@@ -1336,6 +1336,76 @@ describe("parsePaymentDestination Merchant QR", () => {
     )
   })
 
+  it("returns EVM swap merchants for an arbitrary URI scheme containing an EVM address", () => {
+    const result = parsePaymentDestination({
+      destination: `solana:${evmRecipient}`,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+      inputSource: "qr",
+    })
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: expect.arrayContaining([
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDT+Ethereum@swap.blink.sv`,
+          }),
+        ]),
+      }),
+    )
+  })
+
+  it("returns a clean swap lnurl for an EIP-681-style filtered route", () => {
+    expect(
+      parsePaymentDestination({
+        destination: `ethereum:${evmRecipient}+USDC+Arbitrum?amount=1`,
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+        inputSource: "qr",
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: `${evmRecipient}+USDC+Arbitrum@swap.blink.sv`,
+        isMerchant: true,
+        merchant: expect.objectContaining({ id: "blink-boltz-usdc-arbitrum" }),
+      }),
+    )
+  })
+
+  it("returns clean EVM swap merchants for an EIP-681 pay request", () => {
+    const result = parsePaymentDestination({
+      destination: `ethereum:pay-${evmRecipient}@1/transfer?uint256=100`,
+      network: "mainnet",
+      lnAddressDomains: ["blink.sv"],
+      inputSource: "qr",
+    })
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Merchant,
+        merchants: expect.arrayContaining([
+          expect.objectContaining({
+            lnurl: `${evmRecipient}+USDT+Ethereum@swap.blink.sv`,
+          }),
+        ]),
+      }),
+    )
+  })
+
+  it("keeps invalid URI-wrapped swap recipients unknown", () => {
+    expect(
+      parsePaymentDestination({
+        destination: "ethereum:0x52908400098527886E0F7030069857D2E4169Ee7?amount=1",
+        network: "mainnet",
+        lnAddressDomains: ["blink.sv"],
+        inputSource: "qr",
+      }),
+    ).toEqual({ paymentType: PaymentType.Unknown, valid: false })
+  })
+
   it("returns only compatible stablecoin swap choices for non-EVM recipients", () => {
     expect(
       parsePaymentDestination({
