@@ -30,6 +30,8 @@ describe("normalizeMerchantInput", () => {
       `custom:${recipientAddress}+USDC+Arbitrum?amount=1`,
       `${recipientAddress}+USDC+Arbitrum`,
     ],
+    [`custom:${solanaRecipient}+USDC+Solana?amount=1`, `${solanaRecipient}+USDC+Solana`],
+    [`custom:${tronRecipient}+USDT+Tron?amount=1`, `${tronRecipient}+USDT+Tron`],
     [`solana:${solanaRecipient}/transfer?amount=1`, solanaRecipient],
     [`tron:${tronRecipient}?amount=1`, tronRecipient],
     ["https://pos.snapscan.io/qr/STB2ACC8", "https://pos.snapscan.io/qr/STB2ACC8"],
