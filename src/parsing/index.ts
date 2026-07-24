@@ -15,7 +15,6 @@ import {
   getSwapAddressFamily,
   isSwapRecipientCandidate,
 } from "./merchants/swap-recipient-validators"
-import { normalizeMerchantInput } from "./merchants/helpers"
 
 bitcoinjs.initEccLib(ecc)
 
@@ -752,7 +751,7 @@ export const parsePaymentDestination = ({
       return { paymentType: PaymentType.Merchant, merchants }
     }
 
-    const [swapRecipient] = normalizeMerchantInput(merchantContent).split("+")
+    const [swapRecipient] = merchantContent.split("+")
     if (
       isSwapRecipientCandidate(swapRecipient) &&
       getSwapAddressFamily(swapRecipient) === null

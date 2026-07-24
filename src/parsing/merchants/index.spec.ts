@@ -91,6 +91,16 @@ describe("convertMerchantQRToLightningAddress with displayCurrency", () => {
     expect(result).toBe("test-payment-qr@usd-merchant.com")
   })
 
+  test("passes non-Boltz merchant content through without URI normalization", () => {
+    const result = convertMerchantQRToLightningAddress({
+      qrContent: "custom:test-payment-qr?amount=1",
+      network: "mainnet",
+      displayCurrency: "USD",
+    })
+
+    expect(result).toBe("custom%3Atest-payment-qr%3Famount%3D1@usd-merchant.com")
+  })
+
   test("handles case-insensitive displayCurrency matching", () => {
     const result = convertMerchantQRToLightningAddress({
       qrContent: "test-payment-qr",

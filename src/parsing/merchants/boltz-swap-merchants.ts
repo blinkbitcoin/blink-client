@@ -1,3 +1,4 @@
+import { normalizeMerchantInput } from "./helpers"
 import { getSwapAddressFamily, type SwapAddressFamily } from "./swap-recipient-validators"
 import type { Merchant, MerchantConfig } from "./types"
 import type { Network } from "../types"
@@ -150,7 +151,7 @@ const capabilityMatchesFilters = ({
 }
 
 const parseBoltzSwapInput = (input: string): BoltzSwapInput | null => {
-  const segments = input.split("+")
+  const segments = normalizeMerchantInput(input).split("+")
   if (segments.length > 3) {
     return null
   }
@@ -193,7 +194,7 @@ const parseBoltzSwapInput = (input: string): BoltzSwapInput | null => {
 }
 
 export const getBoltzSwapIdentifier = (input: string): string | null => {
-  return parseBoltzSwapInput(input) ? input : null
+  return parseBoltzSwapInput(input) ? normalizeMerchantInput(input) : null
 }
 
 export const getBoltzSwapMerchants = (input: string, network: Network): Merchant[] => {
