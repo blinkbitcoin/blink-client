@@ -485,6 +485,62 @@ const getMerchantLnurlPaymentDestination = ({
   }
 }
 
+const lnurlpWellKnownPath = /^\/\.well-known\/lnurlp\/([^/]+)\/?$/u
+
+const toUrl = (value: string): URL | null => {
+  try {
+    return new URL(value)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * A Blink pay code QR encodes the LNURL-pay endpoint of an account
+ * (`https://<pay host>/.well-known/lnurlp/<username>`), so the bech32 payload
+ * already identifies the account: scanning one resolves to the same destination
+ * as typing that account's lightning address, without a network round trip.
+ *
+ * The address is rebuilt on the canonical domain rather than the endpoint host,
+ * because the pay host is an implementation detail of the LNURL server and not
+ * the account's user-facing identity.
+ *
+ * Endpoints carrying a query string are left alone: a pay code can pin an
+ * amount (`?amount=`), which a plain lightning address cannot express.
+ */
+const getInternalLnAddressFromLnurl = ({
+  lnurl,
+  lnAddressDomains,
+}: {
+  lnurl: string
+  lnAddressDomains: string[]
+}): string | null => {
+  const [canonicalDomain] = lnAddressDomains
+  if (!canonicalDomain) {
+    return null
+  }
+
+  const endpoint = toUrl(utils.decodeUrlOrAddress(lnurl) ?? "")
+  if (!endpoint || endpoint.search) {
+    return null
+  }
+
+  const isKnownDomain = lnAddressDomains.some(
+    (lnAddressDomain) =>
+      lnAddressDomain.toLowerCase() === endpoint.hostname.toLowerCase(),
+  )
+  if (!isKnownDomain) {
+    return null
+  }
+
+  const username = endpoint.pathname.match(lnurlpWellKnownPath)?.[1]
+  if (!username) {
+    return null
+  }
+
+  return `${username}@${canonicalDomain}`
+}
+
 const getLNURLPayResponse = ({
   lnAddressDomains,
   phoneNumberLnAddressDomain,
@@ -554,6 +610,16 @@ const getLNURLPayResponse = ({
   const lnurl = utils.parseLnUrl(destination)
 
   if (lnurl) {
+    const internalLnAddress = getInternalLnAddressFromLnurl({ lnurl, lnAddressDomains })
+    if (internalLnAddress) {
+      return getLNURLPayResponse({
+        lnAddressDomains,
+        phoneNumberLnAddressDomain,
+        destination: internalLnAddress,
+        preferLnurlForInternalHandles,
+      })
+    }
+
     return {
       valid: true,
       paymentType: PaymentType.Lnurl,

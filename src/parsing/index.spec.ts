@@ -32,6 +32,15 @@ const lnUrlInvoiceWithProtocol = `lightning:${lnUrlInvoice}`
 const internalLnAddress = "username@blink.sv"
 const externalLnAddress = "username@external.com"
 
+// Blink pay code QRs: bech32 of https://pay.blink.sv/.well-known/lnurlp/username,
+// the same endpoint with a pinned ?amount=1000, and an external LNURL server.
+const payCodeLnurl =
+  "lnurl1dp68gurn8ghj7urp0yhxymrfde4juumk9uh8wetvdskkkmn0wahz7mrww4excup0w4ek2unwv9kk28z4rmr"
+const payCodeLnurlWithAmount =
+  "lnurl1dp68gurn8ghj7urp0yhxymrfde4juumk9uh8wetvdskkkmn0wahz7mrww4excup0w4ek2unwv9kk20mpd4hh2mn585cnqvpsk9qdwf"
+const externalPayCodeLnurl =
+  "lnurl1dp68gurn8ghj7etcw3jhymnpdshxxmmd9uh8wetvdskkkmn0wahz7mrww4excup0w4ek2unwv9kk2qwn37d"
+
 const lnInvoice =
   "LNBC6864270N1P05ZVJJPP5FPEHVLV3DD2R76065R9V0L3N8QV9MFWU9RYHVPJ5XSZ3P4HY734QDZHXYSV89EQYVMZQSNFW3PXCMMRDDPX7MMDYPP8YATWVD5ZQMMWYPQH2EM4WD6ZQVESYQ5YYUN4DE3KSGZ0DEK8J2GCQZPGXQRRSS6LQA5JLLVUGLW5TPSUG4S2TMT5C8FNERR95FUH8HTCSYX52CP3WZSWJ32XJ5GEWYFN7MG293V6JLA9CZ8ZNDHWDHCNNKUL2QKF6PJLSPJ2NL3J"
 
@@ -1894,5 +1903,124 @@ describe("parsePaymentDestination QR Input with Merchant Priority", () => {
       isMerchant: true,
       merchant: currencyMerchants[1],
     })
+  })
+})
+
+describe("parsePaymentDestination with a Blink pay code lnurl", () => {
+  const lnAddressDomains = ["blink.sv", "pay.blink.sv"]
+
+  it("resolves a pay code to the canonical lightning address, not the pay host", () => {
+    const result = parsePaymentDestination({
+      destination: payCodeLnurl,
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: internalLnAddress,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("resolves a pay code as intraledger when the flag is off", () => {
+    const result = parsePaymentDestination({
+      destination: payCodeLnurl,
+      network: "mainnet",
+      lnAddressDomains,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Intraledger,
+        handle: "username",
+      }),
+    )
+  })
+
+  it("resolves an uppercase pay code, as scanned from a QR", () => {
+    const result = parsePaymentDestination({
+      destination: payCodeLnurl.toUpperCase(),
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: internalLnAddress,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  // A pay code can pin an amount, which a plain lightning address cannot carry.
+  it("keeps the raw lnurl when the pay code pins an amount", () => {
+    const result = parsePaymentDestination({
+      destination: payCodeLnurlWithAmount,
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: payCodeLnurlWithAmount,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("keeps the raw lnurl for an external LNURL server", () => {
+    const result = parsePaymentDestination({
+      destination: externalPayCodeLnurl,
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: externalPayCodeLnurl,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("keeps the raw lnurl when no internal domains are configured", () => {
+    const result = parsePaymentDestination({
+      destination: payCodeLnurl,
+      network: "mainnet",
+      lnAddressDomains: [],
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: payCodeLnurl,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("keeps the raw lnurl for a non-lnurlp path on an internal domain", () => {
+    const result = parsePaymentDestination({
+      destination: lnUrlInvoice,
+      network: "mainnet",
+      lnAddressDomains,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: lnUrlInvoice,
+        isMerchant: false,
+      }),
+    )
   })
 })
