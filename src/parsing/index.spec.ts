@@ -45,6 +45,9 @@ const internalNonLnurlpLnurl =
   "lnurl1dp68gurn8ghj7urp0yhxymrfde4juumk9aek7mt99ahhg6r9wghhqct5dqssae64"
 // decodes to the bare string "not-a-url-at-all"
 const nonUrlLnurl = "lnurl1dehhgttp946hympdv96z6ctvdsvthy9h"
+// https://blink.sv/.well-known/lnurlp/username — served by the canonical domain itself
+const payCodeOnCanonicalDomainLnurl =
+  "lnurl1dp68gurn8ghj7cnvd9hxktnnwchjuam9d3kz66mwdamkutmvde6hymrs9a6hxetjdesk6eg78tm8l"
 
 const lnInvoice =
   "LNBC6864270N1P05ZVJJPP5FPEHVLV3DD2R76065R9V0L3N8QV9MFWU9RYHVPJ5XSZ3P4HY734QDZHXYSV89EQYVMZQSNFW3PXCMMRDDPX7MMDYPP8YATWVD5ZQMMWYPQH2EM4WD6ZQVESYQ5YYUN4DE3KSGZ0DEK8J2GCQZPGXQRRSS6LQA5JLLVUGLW5TPSUG4S2TMT5C8FNERR95FUH8HTCSYX52CP3WZSWJ32XJ5GEWYFN7MG293V6JLA9CZ8ZNDHWDHCNNKUL2QKF6PJLSPJ2NL3J"
@@ -2056,6 +2059,54 @@ describe("parsePaymentDestination with a Blink pay code lnurl", () => {
         paymentType: PaymentType.Lnurl,
         valid: true,
         lnurl: nonUrlLnurl,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  // parseLnUrl accepts a bech32 string on shape alone, so a payload whose checksum is
+  // broken reaches the decode. It must be reported, not raised at the caller.
+  it("keeps the raw lnurl for a payload whose checksum does not hold", () => {
+    const truncatedLnurl = payCodeLnurl.slice(0, -4)
+
+    expect(() =>
+      parsePaymentDestination({
+        destination: truncatedLnurl,
+        network: "mainnet",
+        lnAddressDomains,
+        preferLnurlForInternalHandles: true,
+      }),
+    ).not.toThrow()
+
+    expect(
+      parsePaymentDestination({
+        destination: truncatedLnurl,
+        network: "mainnet",
+        lnAddressDomains,
+        preferLnurlForInternalHandles: true,
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: truncatedLnurl,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("resolves an endpoint served by the canonical domain itself", () => {
+    const result = parsePaymentDestination({
+      destination: payCodeOnCanonicalDomainLnurl,
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: internalLnAddress,
         isMerchant: false,
       }),
     )

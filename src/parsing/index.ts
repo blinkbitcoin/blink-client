@@ -487,9 +487,18 @@ const getMerchantLnurlPaymentDestination = ({
 
 const lnurlpWellKnownPath = /^\/\.well-known\/lnurlp\/([^/]+)\/?$/u
 
-const toUrl = (value: string): URL | null => {
+/**
+ * `parseLnUrl` accepts a bech32 string on shape alone, without verifying its checksum,
+ * so a truncated or corrupted payload reaches this point and makes `decodeUrlOrAddress`
+ * throw. Decoding happens inside the guard, so such an input keeps the raw lnurl it
+ * arrived as and fails where it always did, at fetch time, rather than raising out of
+ * `parsePaymentDestination` and into a caller that has no reason to expect it.
+ */
+const decodeLnurlEndpoint = (lnurl: string): URL | null => {
   try {
-    return new URL(value)
+    // A payload it declines to decode comes back as a value `URL` rejects, so it lands
+    // in the same catch as a checksum that does not hold.
+    return new URL(`${utils.decodeUrlOrAddress(lnurl)}`)
   } catch {
     return null
   }
@@ -520,7 +529,7 @@ const getInternalLnAddressFromLnurl = ({
     return null
   }
 
-  const endpoint = toUrl(utils.decodeUrlOrAddress(lnurl) ?? "")
+  const endpoint = decodeLnurlEndpoint(lnurl)
   if (!endpoint || endpoint.search) {
     return null
   }
