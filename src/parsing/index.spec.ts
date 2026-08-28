@@ -45,6 +45,16 @@ const internalNonLnurlpLnurl =
   "lnurl1dp68gurn8ghj7urp0yhxymrfde4juumk9aek7mt99ahhg6r9wghhqct5dqssae64"
 // decodes to the bare string "not-a-url-at-all"
 const nonUrlLnurl = "lnurl1dehhgttp946hympdv96z6ctvdsvthy9h"
+// The same pay host, with endpoints that name an account no lightning address can:
+// a phone number, a percent-encoded username, a broken encoding, and too short a segment.
+const payCodePhoneLnurl =
+  "lnurl1dp68gurn8ghj7urp0yhxymrfde4juumk9uh8wetvdskkkmn0wahz7mrww4excup09v6nqvehxqcrqvpsxqcqfst4cn"
+const payCodeEncodedUsernameLnurl =
+  "lnurl1dp68gurn8ghj7urp0yhxymrfde4juumk9uh8wetvdskkkmn0wahz7mrww4excup0v9kz2d3evdjsrmu4zx"
+const payCodeMalformedEncodingLnurl =
+  "lnurl1dp68gurn8ghj7urp0yhxymrfde4juumk9uh8wetvdskkkmn0wahz7mrww4excup0v9kz27n6d93k2pfrhyq"
+const payCodeShortUsernameLnurl =
+  "lnurl1dp68gurn8ghj7urp0yhxymrfde4juumk9uh8wetvdskkkmn0wahz7mrww4excup0v93qkz73e9"
 // https://blink.sv/.well-known/lnurlp/username — served by the canonical domain itself
 const payCodeOnCanonicalDomainLnurl =
   "lnurl1dp68gurn8ghj7cnvd9hxktnnwchjuam9d3kz66mwdamkutmvde6hymrs9a6hxetjdesk6eg78tm8l"
@@ -2107,6 +2117,76 @@ describe("parsePaymentDestination with a Blink pay code lnurl", () => {
         paymentType: PaymentType.Lnurl,
         valid: true,
         lnurl: internalLnAddress,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  // A phone account is reachable on the phone domain, not on the canonical one, so
+  // restating it there would name an account that cannot be paid.
+  it("keeps the raw lnurl when the endpoint names a phone number", () => {
+    const result = parsePaymentDestination({
+      destination: payCodePhoneLnurl,
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: payCodePhoneLnurl,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("resolves a username the endpoint percent-encoded", () => {
+    const result = parsePaymentDestination({
+      destination: payCodeEncodedUsernameLnurl,
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: "alice@blink.sv",
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("keeps the raw lnurl when the endpoint's encoding is malformed", () => {
+    const result = parsePaymentDestination({
+      destination: payCodeMalformedEncodingLnurl,
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: payCodeMalformedEncodingLnurl,
+        isMerchant: false,
+      }),
+    )
+  })
+
+  it("keeps the raw lnurl when the path segment is not a username", () => {
+    const result = parsePaymentDestination({
+      destination: payCodeShortUsernameLnurl,
+      network: "mainnet",
+      lnAddressDomains,
+      preferLnurlForInternalHandles: true,
+    })
+    expect(result).toEqual(
+      expect.objectContaining({
+        paymentType: PaymentType.Lnurl,
+        valid: true,
+        lnurl: payCodeShortUsernameLnurl,
         isMerchant: false,
       }),
     )

@@ -504,6 +504,15 @@ const decodeLnurlEndpoint = (lnurl: string): URL | null => {
   }
 }
 
+/** A path segment carries the username percent-encoded; a malformed encoding is not one. */
+const decodePathSegment = (segment: string): string | null => {
+  try {
+    return decodeURIComponent(segment)
+  } catch {
+    return null
+  }
+}
+
 /**
  * A Blink pay code QR encodes the LNURL-pay endpoint of an account
  * (`https://<pay host>/.well-known/lnurlp/<username>`), so the bech32 payload
@@ -515,7 +524,11 @@ const decodeLnurlEndpoint = (lnurl: string): URL | null => {
  * the account's user-facing identity.
  *
  * Endpoints carrying a query string are left alone: a pay code can pin an
- * amount (`?amount=`), which a plain lightning address cannot express.
+ * amount (`?amount=`), which a plain lightning address cannot express. So is any
+ * endpoint whose account cannot be named as a lightning address on the canonical
+ * domain: a phone number is reachable on its own domain rather than this one, and a
+ * path segment that is not a username spells an account nobody could type. Both keep
+ * the raw lnurl they arrived as, which stays payable over the endpoint itself.
  */
 const getInternalLnAddressFromLnurl = ({
   lnurl,
@@ -542,8 +555,13 @@ const getInternalLnAddressFromLnurl = ({
     return null
   }
 
-  const username = endpoint.pathname.match(lnurlpWellKnownPath)?.[1]
-  if (!username) {
+  const pathSegment = endpoint.pathname.match(lnurlpWellKnownPath)?.[1]
+  if (!pathSegment) {
+    return null
+  }
+
+  const username = decodePathSegment(pathSegment)
+  if (!username || !username.match(reUsername)) {
     return null
   }
 
