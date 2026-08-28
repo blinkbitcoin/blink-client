@@ -485,6 +485,89 @@ const getMerchantLnurlPaymentDestination = ({
   }
 }
 
+const lnurlpWellKnownPath = /^\/\.well-known\/lnurlp\/([^/]+)\/?$/u
+
+/**
+ * `parseLnUrl` accepts a bech32 string on shape alone, without verifying its checksum,
+ * so a truncated or corrupted payload reaches this point and makes `decodeUrlOrAddress`
+ * throw. Decoding happens inside the guard, so such an input keeps the raw lnurl it
+ * arrived as and fails where it always did, at fetch time, rather than raising out of
+ * `parsePaymentDestination` and into a caller that has no reason to expect it.
+ */
+const decodeLnurlEndpoint = (lnurl: string): URL | null => {
+  try {
+    // A payload it declines to decode comes back as a value `URL` rejects, so it lands
+    // in the same catch as a checksum that does not hold.
+    return new URL(`${utils.decodeUrlOrAddress(lnurl)}`)
+  } catch {
+    return null
+  }
+}
+
+/** A path segment carries the username percent-encoded; a malformed encoding is not one. */
+const decodePathSegment = (segment: string): string | null => {
+  try {
+    return decodeURIComponent(segment)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * A Blink pay code QR encodes the LNURL-pay endpoint of an account
+ * (`https://<pay host>/.well-known/lnurlp/<username>`), so the bech32 payload
+ * already identifies the account: scanning one resolves to the same destination
+ * as typing that account's lightning address, without a network round trip.
+ *
+ * The address is rebuilt on the canonical domain rather than the endpoint host,
+ * because the pay host is an implementation detail of the LNURL server and not
+ * the account's user-facing identity.
+ *
+ * Endpoints carrying a query string are left alone: a pay code can pin an
+ * amount (`?amount=`), which a plain lightning address cannot express. So is any
+ * endpoint whose account cannot be named as a lightning address on the canonical
+ * domain: a phone number is reachable on its own domain rather than this one, and a
+ * path segment that is not a username spells an account nobody could type. Both keep
+ * the raw lnurl they arrived as, which stays payable over the endpoint itself.
+ */
+const getInternalLnAddressFromLnurl = ({
+  lnurl,
+  lnAddressDomains,
+}: {
+  lnurl: string
+  lnAddressDomains: string[]
+}): string | null => {
+  const [canonicalDomain] = lnAddressDomains
+  if (!canonicalDomain) {
+    return null
+  }
+
+  const endpoint = decodeLnurlEndpoint(lnurl)
+  if (!endpoint || endpoint.search) {
+    return null
+  }
+
+  const isKnownDomain = lnAddressDomains.some(
+    (lnAddressDomain) =>
+      lnAddressDomain.toLowerCase() === endpoint.hostname.toLowerCase(),
+  )
+  if (!isKnownDomain) {
+    return null
+  }
+
+  const pathSegment = endpoint.pathname.match(lnurlpWellKnownPath)?.[1]
+  if (!pathSegment) {
+    return null
+  }
+
+  const username = decodePathSegment(pathSegment)
+  if (!username || !username.match(reUsername)) {
+    return null
+  }
+
+  return `${username}@${canonicalDomain}`
+}
+
 const getLNURLPayResponse = ({
   lnAddressDomains,
   phoneNumberLnAddressDomain,
@@ -554,6 +637,16 @@ const getLNURLPayResponse = ({
   const lnurl = utils.parseLnUrl(destination)
 
   if (lnurl) {
+    const internalLnAddress = getInternalLnAddressFromLnurl({ lnurl, lnAddressDomains })
+    if (internalLnAddress) {
+      return getLNURLPayResponse({
+        lnAddressDomains,
+        phoneNumberLnAddressDomain,
+        destination: internalLnAddress,
+        preferLnurlForInternalHandles,
+      })
+    }
+
     return {
       valid: true,
       paymentType: PaymentType.Lnurl,
