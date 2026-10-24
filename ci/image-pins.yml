@@ -1,0 +1,15 @@
+#@ load("@ytt:overlay", "overlay")
+
+#! Pin the qualified Node artifact without modifying vendored task definitions.
+#! https://github.com/blinkbitcoin/blink-wip/issues/1699
+#@overlay/match by=lambda index, left, right: "jobs" in left, expects=1
+---
+jobs:
+#@overlay/match by=overlay.all, expects="1+"
+- plan:
+  #@overlay/match by=overlay.subset({"config": {"image_resource": {"source": {"repository": "us.gcr.io/galoy-org/nodejs-concourse"}}}}), expects="0+"
+  - config:
+      image_resource:
+        #@overlay/match missing_ok=True
+        version:
+          digest: sha256:8e9d5591bc55697df061390c745c422958370cf714e00249b78d4784fee7d6a6
