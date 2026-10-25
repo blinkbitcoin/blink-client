@@ -10,13 +10,13 @@ fi
 target="${FLY_TARGET:-ciblink}"
 team=dev
 
-TMPDIR=""
-TMPDIR=$(mktemp -d -t repipe.XXXXXX)
-trap "rm -rf ${TMPDIR}" INT TERM QUIT EXIT
+repipe_tmpdir=$(mktemp -d -t repipe.XXXXXX)
+trap 'rm -rf "$repipe_tmpdir"' INT TERM QUIT EXIT
 
-ytt -f ci > ${TMPDIR}/pipeline.yml
+# Keep vendor library paths while excluding vendir configuration documents.
+ytt -f ci --file-mark 'vendir.yml:exclude=true' --file-mark 'vendir.lock.yml:exclude=true' > "$repipe_tmpdir/pipeline.yml"
 
 echo "Updating pipeline @ ${target}"
 
-fly -t ${target} set-pipeline --team=${team} -p blink-client -c ${TMPDIR}/pipeline.yml
+fly -t ${target} set-pipeline --team=${team} -p blink-client -c "$repipe_tmpdir/pipeline.yml"
 fly -t ${target} unpause-pipeline --team=${team} -p blink-client
